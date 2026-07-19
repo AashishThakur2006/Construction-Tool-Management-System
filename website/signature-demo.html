@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Signature demo — The Frame Rises</title>
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { background: #1a1714; color: #ede6da; font: 14px/1.5 monospace; }
+  .stage { position: fixed; inset: 0; }
+  canvas { width: 100%; height: 100%; display: block; }
+  .scroll-space { height: 500vh; }
+  .hud {
+    position: fixed; top: 16px; left: 16px; z-index: 10;
+    background: rgba(26,23,20,.7); padding: 12px 16px; border: 1px solid #4a443c;
+  }
+  button {
+    margin-top: 8px; background: #c96f4a; border: 0; color: #1a1714;
+    font: inherit; padding: 8px 14px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="stage"><canvas id="sig"></canvas></div>
+<div class="scroll-space"></div>
+<div class="hud">
+  <div>progress: <span id="p">0.00</span></div>
+  <button id="pulse">pulse()</button>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module">
+  import { createSignature } from "./js/signature.js";
+
+  const sig = createSignature(document.getElementById("sig"));
+  const label = document.getElementById("p");
+
+  function onScroll() {
+    const max = document.body.scrollHeight - innerHeight;
+    const p = max > 0 ? scrollY / max : 0;
+    sig.setProgress(p);
+    label.textContent = p.toFixed(2);
+  }
+  addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  addEventListener("pointermove", (e) => {
+    sig.setPointer((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1);
+  });
+
+  document.getElementById("pulse").addEventListener("click", () => sig.pulse());
+</script>
+</body>
+</html>
