@@ -1,0 +1,168 @@
+/* PLINTH — jobs list and job detail. */
+import * as store from "../store.js";
+import { h, fmt, table, sortRows, statusChip, stateBlock, skelTable, pageHead, confirmDialog, toast } from "../ui.js";
+import { deniedBlock } from "./misc.js";
+
+const state = { q: "", status: "", engineer: "", sort: { key: "id", dir: -1 } };
+
+export function list(container) {
+  container.append(skelTable(8));
+  store.load("jobs").then(() => { container.replaceChildren(); paint(container); });
+}
+
+function paint(container) {
+  const all = store.myJobs();
+  if (all.length === 0) {
+    container.append(pageHead({ title: "Jobs" }), h("div.card", {}, stateBlock(store.COPY.empty.jobs)));
+    return;
+  }
+
+  const cols = [
+    { key: "id", label: "Job", sortable: true, mono: true, sub: (j) => j.name },
+    { key: "client", label: "Client", sortable: true },
+    { key: "location", label: "Location" },
+    store.isOwner() && { key: "engineerId", label: "Engineer", sortable: true, render: (j) => store.employee(j.engineerId)?.name || "—" },
+    { key: "started", label: "Window", sortable: true, mono: true, render: (j) => `${fmt.date(j.started)} → ${fmt.date(j.ends)}` },
+    { key: "assets", label: "Assets", sortable: true, mono: true, right: true, value: (j) => store.jobAssets(j.id).length, render: (j) => String(store.jobAssets(j.id).length) },
+    { key: "status", label: "Status", sortable: true, render: (j) => statusChip("job", j.status) },
+  ].filter(Boolean);
+
+  let rows = all.filter((j) => {
+    if (state.status && j.status !== state.status) return false;
+    if (state.engineer && j.engineerId !== state.engineer) return false;
+    if (state.q) {
+      const s = state.q.toLowerCase();
+      if (![j.id, j.name, j.client, j.location].some((v) => v.toLowerCase().includes(s))) return false;
+    }
+    return true;
+  });
+  rows = sortRows(rows, state.sort, cols);
+
+  const engineers = store.db.employees.filter((e) => e.role === "Site Engineer");
+  const rerender = () => { container.replaceChildren(); paint(container); };
+
+  container.append(
+    pageHead({
+      title: "Jobs",
+      sub: store.isOwner() ? "Every contracted scope of work" : "The jobs you run",
+    }),
+    h("div.filters", {},
+      h("input", {
+        type: "search", placeholder: "Filter by code, name, client…", "aria-label": "Filter jobs",
+        value: state.q, oninput: (e) => { state.q = e.target.value; rerender(); },
+      }),
+      h("select", { "aria-label": "Filter by status", onchange: (e) => { state.status = e.target.value; rerender(); } },
+        h("option", { value: "" }, "Any status"),
+        ["Active", "Mobilising", "On hold", "Completed"].map((s) => h("option", { value: s, selected: state.status === s }, s))),
+      store.isOwner() && h("select", { "aria-label": "Filter by engineer", onchange: (e) => { state.engineer = e.target.value; rerender(); } },
+        h("option", { value: "" }, "Any engineer"),
+        engineers.map((e) => h("option", { value: e.id, selected: state.engineer === e.id }, e.name))),
+      h("span.count", {}, `${rows.length} of ${all.length} jobs`)),
+    rows.length
+      ? h("div.card", {}, table({
+          cols, rows, rowKey: (j) => j.id, ariaLabel: "Jobs",
+          sort: state.sort,
+          onSort: (key) => { state.sort = state.sort.key === key ? { key, dir: -state.sort.dir } : { key, dir: 1 }; rerender(); },
+          onOpen: (j) => { location.hash = `/jobs/${j.id}`; },
+        }))
+      : h("div.card", {}, stateBlock(store.COPY.noResults(state.q || "these filters"), {
+          onAction: () => { state.q = ""; state.status = ""; state.engineer = ""; rerender(); },
+        })));
+}
+
+/* ---------------- detail ---------------- */
+export function detail(container, id) {
+  const j = store.job(id);
+  if (!j || !store.canSeeJob(id)) { container.append(deniedBlock()); return; }
+
+  const eng = store.employee(j.engineerId);
+  const assets = store.jobAssets(id);
+  const crew = store.jobCrew(id);
+  const pays = store.visiblePayments().filter((p) => p.jobId === id);
+  const committed = pays.filter((p) => ["Pending", "Overdue", "Disputed"].includes(p.status)).reduce((s, p) => s + p.amount, 0);
+  const mrs = store.visibleMaintenance().filter((m) => {
+    const a = store.asset(m.assetId);
+    return a && (a.jobId === id) && ["Reported", "Approved", "In workshop"].includes(m.status);
+  });
+
+  const timeline = [
+    { on: j.started, note: `Job ${j.status === "Mobilising" ? "mobilises" : "started"} — ${j.client}` },
+    ...assets.map((a) => ({ on: a.allocatedOn, note: `${a.id} ${a.model} allocated` })),
+    j.holdNote && { on: "2026-05-22", note: j.holdNote },
+    { on: j.ends, note: j.ends < store.TODAY ? "Job completed" : `Planned completion (${fmt.rel(j.ends, store.TODAY)})` },
+  ].filter(Boolean).sort((a, b) => a.on.localeCompare(b.on));
+
+  container.append(
+    pageHead({
+      title: j.name,
+      sub: `${j.client} · ${j.location}`,
+      crumbs: [{ label: "Jobs", href: "#/jobs" }, { label: j.id }],
+      actions: h("div.head-actions", {},
+        statusChip("job", j.status),
+        ["Active", "Mobilising"].includes(j.status) && h("a.btn.btn-primary", { href: `#/allocate?job=${j.id}` }, "Allocate assets")),
+    }),
+    h("div.kpis", {},
+      h("div.card.kpi", {}, h("div.label", {}, "Allocated assets"), h("div.value", {}, String(assets.length))),
+      h("div.card.kpi", {}, h("div.label", {}, "Crew on job"), h("div.value", {}, String(crew.length))),
+      h("div.card.kpi", {}, h("div.label", {}, "Committed spend"), h("div.value", {}, fmt.inrC(committed)), h("div.sub", {}, `${pays.length} ledger entries`)),
+      h("div.card.kpi", {}, h("div.label", {}, "Open fault reports"), h("div.value", {}, String(mrs.length)))),
+    h("div.two-col", {},
+      h("div.stack", {},
+        assetCard(j, assets),
+        payCard(j, pays)),
+      h("div.stack", {},
+        h("div.card", {},
+          h("div.card-head", {}, h("h2", {}, "Details")),
+          h("dl.meta-list.card-pad", {},
+            h("dt", {}, "Code"), h("dd.mono", {}, j.id),
+            h("dt", {}, "Client"), h("dd", {}, j.client),
+            h("dt", {}, "Location"), h("dd", {}, j.location),
+            h("dt", {}, "Engineer"), h("dd", {}, eng ? h("a", { href: `#/employees/${eng.id}` }, eng.name) : "—"),
+            h("dt", {}, "Window"), h("dd.mono", {}, `${fmt.date(j.started)} → ${fmt.date(j.ends)}`))),
+        h("div.card", {},
+          h("div.card-head", {}, h("h2", {}, "Crew")),
+          crew.length ? h("ul.rowlist", {}, crew.map((e) => h("li", {},
+            h("a.rowlist-item", { href: `#/employees/${e.id}` },
+              h("span.rowlist-main", {}, h("b", {}, e.name), h("span.cell-sub", {}, e.role)),
+              h("span.mono.muted", {}, e.id)))))
+            : h("p.card-pad.muted", {}, "No crew assigned yet.")),
+        h("div.card", {},
+          h("div.card-head", {}, h("h2", {}, "Timeline")),
+          h("ul.timeline.card-pad", {}, timeline.map((t) =>
+            h("li", {}, h("span.when", {}, fmt.date(t.on)), h("span", {}, t.note))))))));
+}
+
+function assetCard(j, assets) {
+  return h("div.card", {},
+    h("div.card-head", {}, h("h2", {}, `Allocated assets · ${assets.length}`),
+      h("a.link-btn", { href: "#/assets" }, "Full register")),
+    assets.length
+      ? h("ul.rowlist", {}, assets.map((a) => h("li", {},
+          h("div.rowlist-item", {},
+            h("a.rowlist-main", { href: `#/assets/${a.id}` },
+              h("b", {}, `${a.id} · ${a.model}`),
+              h("span.cell-sub", {}, `since ${fmt.date(a.allocatedOn)} · condition ${a.condition}`)),
+            h("button.btn.btn-secondary.btn-sm", {
+              type: "button",
+              onclick: async () => {
+                const c = store.COPY.confirm.returnAsset(a);
+                if (await confirmDialog({ ...c, danger: false })) {
+                  const undo = store.returnToYard([a.id]);
+                  toast(`${a.id} returned to the yard.`, { undo });
+                }
+              },
+            }, "Return")))))
+      : h("p.card-pad.muted", {}, `Nothing is allocated to ${j.id} right now. Use “Allocate assets” to commit stock from the yard.`));
+}
+
+function payCard(j, pays) {
+  return h("div.card", {},
+    h("div.card-head", {}, h("h2", {}, `Ledger for ${j.id}`),
+      h("a.link-btn", { href: "#/payments" }, "All payments")),
+    pays.length
+      ? h("ul.rowlist", {}, pays.map((p) => h("li", {},
+          h("a.rowlist-item", { href: `#/payments/${p.id}` },
+            h("span.rowlist-main", {}, h("b", {}, `${p.id} · ${p.payee}`), h("span.cell-sub", {}, p.desc)),
+            h("span.rowlist-stack", {}, statusChip("pay", p.status), h("span.mono", {}, fmt.inr(p.amount)))))))
+      : h("p.card-pad.muted", {}, "No payments recorded against this job."));
+}

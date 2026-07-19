@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Plinth — design guide</title>
+<meta name="description" content="How Plinth is built: palette, type, density, vocabulary, the allocation field, and the iteration log." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%233e5c48'/%3E%3Cpath d='M8 24V9h9a5 5 0 0 1 0 10h-5v5z' fill='%23fbfaf6'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bone:#f2efe7; --chalk:#fbfaf6; --ink:#232720; --fieldgray:#5d6355;
+    --moss:#3e5c48; --ember:#b4653c; --line:#ddd9cc; --line-strong:#c8c3b2;
+    --ok-t:#2f6440; --ok-b:#e3ede3; --warn-t:#8a5a18; --warn-b:#f4e9d2;
+    --bad-t:#9a3c28; --bad-b:#f6e1d9; --info-t:#33607b; --info-b:#e0eaf0;
+    --mut-t:#5d6355; --mut-b:#ebe9e0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bone); color:var(--ink); font:15px/1.65 "Public Sans",sans-serif; }
+  .mono { font-family:"Spline Sans Mono",monospace; font-variant-numeric:tabular-nums; }
+  header.hero { background:#20241d; color:#f4f1ea; padding:72px 24px 64px; }
+  .wrap { max-width:880px; margin:0 auto; padding:0 24px; }
+  header .wrap { padding:0; }
+  header h1 { font-family:"Bricolage Grotesque"; font-size:clamp(48px,8vw,84px); line-height:1; }
+  header p.tag { color:rgba(244,241,234,.75); margin-top:16px; max-width:56ch; }
+  header .mono { color:rgba(244,241,234,.55); font-size:12px; letter-spacing:.14em; display:block; margin-bottom:24px; }
+  header a { color:#8fb99b; }
+  main { padding:56px 0 96px; }
+  section { margin-bottom:64px; }
+  h2 { font-family:"Bricolage Grotesque"; font-size:28px; margin-bottom:8px; }
+  h3 { font-family:"Bricolage Grotesque"; font-size:17px; margin:28px 0 8px; }
+  section > p, section li { color:#3a3f35; max-width:72ch; }
+  section > p + p { margin-top:10px; }
+  .rule { color:var(--fieldgray); font-size:13px; margin-bottom:24px; }
+  table { border-collapse:collapse; width:100%; background:var(--chalk); border:1px solid var(--line); border-radius:6px; overflow:hidden; font-size:13.5px; }
+  th, td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:var(--bone); font-size:12px; color:var(--fieldgray); }
+  tr:last-child td { border-bottom:0; }
+  .swatch { display:inline-block; width:14px; height:14px; border-radius:4px; vertical-align:-2px; margin-right:8px; border:1px solid rgba(0,0,0,.12); }
+  .chip { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:500; padding:2px 8px; border-radius:999px; white-space:nowrap; }
+  .chip svg { width:8px; height:8px; }
+  code { font-family:"Spline Sans Mono",monospace; font-size:.9em; background:var(--chalk); border:1px solid var(--line); border-radius:4px; padding:1px 5px; }
+  ul, ol { padding-left:22px; }
+  li { margin-bottom:6px; }
+  .glossary dt { font-weight:600; margin-top:14px; }
+  .glossary dd { color:#3a3f35; max-width:70ch; }
+  .log { border-left:3px solid var(--ember); background:var(--chalk); border-radius:0 6px 6px 0; padding:14px 18px; margin-bottom:12px; }
+  .log b { display:block; }
+  .log span { color:var(--fieldgray); font-size:13.5px; }
+  .type-demo { background:var(--chalk); border:1px solid var(--line); border-radius:6px; padding:20px 24px; margin-top:10px; }
+  .type-demo .d1 { font-family:"Bricolage Grotesque"; font-weight:700; font-size:30px; }
+  .type-demo .d2 { font-size:14px; margin-top:4px; }
+  .type-demo .d3 { font-family:"Spline Sans Mono"; font-size:13px; color:var(--fieldgray); margin-top:6px; }
+  footer { border-top:1px solid var(--line); padding:24px; text-align:center; color:var(--fieldgray); font-size:13px; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <span class="mono">PLINTH · DESIGN GUIDE</span>
+    <h1>Plinth</h1>
+    <p class="tag">The plant register for every job, asset and rupee — allocation to settlement.
+    This guide records the decisions the product is built on, and the honest log of what the
+    critic passes caught. <a href="index.html">Open the app</a>.</p>
+  </div>
+</header>
+<main>
+<div class="wrap">
+
+<section>
+  <h2>Vocabulary</h2>
+  <p class="rule">One word per concept, zero drift, everywhere — interface, seed data, confirm dialogs, this guide.</p>
+  <dl class="glossary">
+    <dt>Asset</dt><dd>Any ownable piece of plant or equipment. Never "tool", "equipment" or "machine" in the interface.</dd>
+    <dt>Job</dt><dd>One contracted scope of work at one location. Never "project" or "site" as the noun for the work unit.</dd>
+    <dt>Allocation</dt><dd>The record of an asset committed to a job. Verbs: <em>allocate</em>, <em>return</em>, <em>transfer</em>. Never "assign", "check out" or "issue" for assets. (People are <em>assigned</em>; assets are <em>allocated</em>.)</dd>
+    <dt>Yard</dt><dd>Where unallocated assets live. Status: "In yard".</dd>
+    <dt>Workshop</dt><dd>Maintenance holding. Status: "In workshop".</dd>
+    <dt>Maintenance request</dt><dd>Reported → Approved → In workshop → Resolved, or Rejected. The Owner approves every rupee of spend.</dd>
+    <dt>Payment</dt><dd>One ledger entry: Paid, Pending, Overdue, Disputed — or Voided, which stays on the ledger for audit.</dd>
+    <dt>Employee</dt><dd>A person on the payroll, assigned to jobs.</dd>
+  </dl>
+</section>
+
+<section>
+  <h2>Palette</h2>
+  <p class="rule">Field-office, not SaaS. No pure black or white — every neutral is warmed toward the green of the brand. The banned looks (default framework palettes, purple-on-dark gradients, hi-vis orange on charcoal) never appear.</p>
+  <table>
+    <tr><th>Name</th><th>Hex</th><th>Used for</th></tr>
+    <tr><td><span class="swatch" style="background:#f2efe7"></span>Bone</td><td class="mono">#F2EFE7</td><td>App background — warm paper</td></tr>
+    <tr><td><span class="swatch" style="background:#fbfaf6"></span>Chalk</td><td class="mono">#FBFAF6</td><td>Raised surfaces: cards, table bodies, inputs</td></tr>
+    <tr><td><span class="swatch" style="background:#232720"></span>Ink</td><td class="mono">#232720</td><td>Primary text (warmed green-black) — 13.2:1 on Chalk</td></tr>
+    <tr><td><span class="swatch" style="background:#5d6355"></span>Fieldgray</td><td class="mono">#5D6355</td><td>Secondary text, labels — 5.9:1 on Chalk</td></tr>
+    <tr><td><span class="swatch" style="background:#3e5c48"></span>Moss</td><td class="mono">#3E5C48</td><td>Brand: primary buttons, active nav — 7.1:1 on Chalk</td></tr>
+    <tr><td><span class="swatch" style="background:#b4653c"></span>Ember</td><td class="mono">#B4653C</td><td>The single accent, reserved for attention. Never decoration.</td></tr>
+  </table>
+  <h3>Semantic layer — derived, not bolted on</h3>
+  <p>Each status colour is the same earth family desaturated onto a tint, and no status is
+  carried by colour alone: every chip pairs a <b>glyph shape</b> with a text label, so the row
+  reads correctly at 12&nbsp;px in a dense table and for colour-blind users.</p>
+  <table>
+    <tr><th>Semantic</th><th>Text / tint</th><th>Glyph</th><th>Example</th></tr>
+    <tr><td>Success</td><td class="mono">#2F6440 / #E3EDE3</td><td>filled dot</td><td><span class="chip" style="background:var(--ok-b);color:var(--ok-t)"><svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.4" fill="currentColor"/></svg>Allocated</span></td></tr>
+    <tr><td>Warning</td><td class="mono">#8A5A18 / #F4E9D2</td><td>triangle</td><td><span class="chip" style="background:var(--warn-b);color:var(--warn-t)"><svg viewBox="0 0 8 8"><path d="M4 .8 7.6 7H.4L4 .8z" fill="currentColor"/></svg>In workshop</span></td></tr>
+    <tr><td>Danger</td><td class="mono">#9A3C28 / #F6E1D9</td><td>square</td><td><span class="chip" style="background:var(--bad-b);color:var(--bad-t)"><svg viewBox="0 0 8 8"><rect x=".8" y=".8" width="6.4" height="6.4" fill="currentColor"/></svg>Overdue</span></td></tr>
+    <tr><td>Info</td><td class="mono">#33607B / #E0EAF0</td><td>ring</td><td><span class="chip" style="background:var(--info-b);color:var(--info-t)"><svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="2.8" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>Pending</span></td></tr>
+    <tr><td>Neutral</td><td class="mono">#5D6355 / #EBE9E0</td><td>open dot</td><td><span class="chip" style="background:var(--mut-b);color:var(--mut-t)"><svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="2.2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Completed</span></td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>Type</h2>
+  <p class="rule">Three roles, three faces. In-app display tops out at 2rem — the huge treatment is reserved for the login screen and big empty states, where it earns its size.</p>
+  <div class="type-demo">
+    <div class="d1">Bricolage Grotesque — display</div>
+    <div class="d2">Public Sans — interface copy, deliberately quiet so the data reads first.</div>
+    <div class="d3">Spline Sans Mono — AST-0132 · JOB-24-011 · ₹28,90,000 · 19 Jul 2026</div>
+  </div>
+  <p style="margin-top:12px">The mono face carries every identifier, timestamp, quantity and rupee figure, with
+  <code>font-variant-numeric: tabular-nums</code> mandatory wherever figures stack — amounts in the
+  ledger align digit-for-digit.</p>
+</section>
+
+<section>
+  <h2>Spacing, density, elevation</h2>
+  <p>One scale: <span class="mono">4 / 8 / 12 / 16 / 24 / 32 / 48 / 64&nbsp;px</span>. Two densities, toggled in Settings and persisted:
+  <b>Comfortable</b> (default: 40px controls, 44px rows) and <b>Compact</b> (32px controls and rows) for
+  ops users who want more register per screen.</p>
+  <h3>The elevation rule — never broken</h3>
+  <ul>
+    <li><b>Border</b> = static structure: cards at rest, tables, inputs, dividers.</li>
+    <li><b>Background shift</b> = state: hover, selected, active nav, pressed.</li>
+    <li><b>Shadow</b> = floating layers only: menus, modals, toasts. Nothing in the page flow casts a shadow.</li>
+  </ul>
+  <h3>Structure device</h3>
+  <p>Navigation labels carry live truth from the store — "Assets · 64 registered · 21 in yard",
+  "Maintenance · 9 open · 2 overdue", "Payments · 3 overdue · ₹28.9&nbsp;L". Counts recompute on every
+  mutation and rescope on every role switch. A zero is omitted, never faked.</p>
+</section>
+
+<section>
+  <h2>The signature: the allocation field</h2>
+  <p>A canvas-2D particle field that encodes the product's own logic, built and proven standalone
+  (<a href="signature-demo.html">signature-demo.html</a>) before any screen existed:</p>
+  <ul>
+    <li>Every particle is one asset from the live register; job nodes gain visual mass as they absorb assets (radius ∝ √count).</li>
+    <li>Idle assets drift loose and dim; allocated assets lock into slow orbit; workshop assets gather amber along the lower edge.</li>
+    <li>Every few seconds one real transaction type plays — an allocation, a return, or a job-to-job transfer — traced as a comet arc along a quadratic curve.</li>
+    <li>Rendering is plain canvas 2D at devicePixelRatio ≤ 2, a few hundred draw calls per frame; it holds 60fps on a small viewport and disposes itself the moment its canvas leaves the DOM.</li>
+  </ul>
+  <p><b>Scope is deliberate and exhaustive:</b> the login backdrop, the dashboard hero card, and empty
+  states driven by real emptiness. It never appears behind tables, forms, lists or modals — working
+  screens stay quiet, because the moment the signature decorates a data screen the product reads as
+  a toy. Under <code>prefers-reduced-motion</code> or the in-app motion toggle it renders one static,
+  truthful frame — the same data, no loop.</p>
+</section>
+
+<section>
+  <h2>Component inventory</h2>
+  <ul>
+    <li><b>App shell</b> — sidebar with live-count nav, topbar with global search (<code>/</code>), demo role switcher, offline banner verified by a reachability check, not just <code>navigator.onLine</code>.</li>
+    <li><b>Data table</b> — sortable columns with <code>aria-sort</code>, sticky header, roving-tabindex rows (arrow keys move, Enter opens, Space selects), bulk selection with a mixed-status guard, and a solved small-screen strategy: below 700px every row becomes a labelled stack — no column is ever silently hidden.</li>
+    <li><b>Chips & condition badges</b> — glyph + tint + label; condition A–D as bordered mono squares.</li>
+    <li><b>Forms</b> — visible labels, inline validation on blur (never first on submit), helper text, and a submit row that states exactly which fields remain: "To continue, complete: Payee, Amount".</li>
+    <li><b>Modals</b> — focus-trapped, Escape closes, focus returns to the opener. Destructive confirms name the consequence and its scale from pre-written copy.</li>
+    <li><b>Toasts</b> — polite live region, auto-dismiss, Undo where the action supports it (allocation, return, approval, payment actions restore a pre-action snapshot).</li>
+    <li><b>Skeletons</b> — shimmer placeholders that mirror the final layout's shape, shown on first load of each view.</li>
+    <li><b>States</b> — empty, load-error, offline, permission-denied, no-search-results: all designed, all previewable from Settings. Denied renders in place; it is a screen, not a redirect.</li>
+    <li><b>Allocation flow</b> — the core transaction: choose job → pick from the yard → review (count, plant value, date, consequences) → confirm, with undo. Fully keyboard-operable end to end.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Roles</h2>
+  <p><b>Owner</b> sees every job, asset and payment; approves maintenance spend; decides rejections;
+  records, settles and voids payments; adds employees; retires assets.
+  <b>Site Engineer</b> is scoped to their jobs: their assets, their crew, their ledger entries only.
+  They request assets from the yard, log returns, and raise fault reports — and see the Owner's
+  decision state instead of the decision controls. Switching roles in the top bar rescopes the whole
+  register: counts, lists, dashboards, search results, and what a URL is allowed to show.</p>
+</section>
+
+<section>
+  <h2>Iteration log — what the critic passes caught</h2>
+  <p class="rule">A guide with no failures logged is a guide that lied. Both passes ran in a real browser, both roles, three widths.</p>
+  <div class="log"><b>Confirm dialogs always cancelled themselves.</b><span>The dialog's close routine resolved the promise as "cancelled" before the confirm handler could resolve it as "confirmed" — so returns, voids and retirements silently did nothing. Caught by asserting the yard count after a return (it hadn't moved). Fixed by resolving before closing.</span></div>
+  <div class="log"><b>The dashboard hero kept animating after you left.</b><span>The field's rAF loop and ResizeObserver survived navigation because the canvas was removed but never disposed, stacking dead render loops. The field now disposes itself the moment its canvas is disconnected from the document.</span></div>
+  <div class="log"><b>"You are offline" while online.</b><span>The test machine's OS intermittently reported offline, and the banner trusted <code>navigator.onLine</code>. The banner now only shows after a reachability check against the app's own origin fails, and re-verifies on every offline event.</span></div>
+  <div class="log"><b>Utilization bars rendered as nothing.</b><span>The bar track and fill were inline spans, so their heights and widths were ignored. One line of <code>display:block</code> each.</span></div>
+  <div class="log"><b>Red-on-moss in the active nav item.</b><span>The overdue sub-label kept its danger colour when its nav item became active, dropping to roughly 2:1 contrast on the moss background. Active items now swap the alert to a light apricot tint.</span></div>
+  <div class="log"><b>The sidebar said Rajendra while the app said Priya.</b><span>The user chip was built once at shell construction and never followed the role switcher. It now re-renders with the nav counts.</span></div>
+  <div class="log"><b>Search collapsed to 48px at 390px wide.</b><span>The topbar spacer and the role switcher squeezed the search field to an icon. The spacer now disappears below 700px and the role select is capped, giving search the row.</span></div>
+  <div class="log"><b>Buttons with underlines.</b><span>Anchor-based buttons (Allocate assets, settings links) inherited link underlines — a default leaking through. <code>text-decoration:none</code> on the button class.</span></div>
+  <h3>Verified in the final pass</h3>
+  <ul>
+    <li>Zero console errors across all 21 owner routes and 14 engineer routes.</li>
+    <li>Zero horizontal overflow on every screen at 390, 768 and 1440px, in both densities.</li>
+    <li>The 64-row register at 390px renders as labelled stacks with nothing hidden.</li>
+    <li>Full keyboard pass: <code>/</code> focuses search, arrow keys walk table rows, Enter opens, Escape closes modals and the mobile sidebar, and an allocation completes without touching the mouse.</li>
+    <li>Reduced motion (OS-level or the Settings toggle) stills the field to a static frame and removes transitions; density and motion preferences persist per device.</li>
+  </ul>
+</section>
+
+</div>
+</main>
+<footer>Plinth — a demonstration product. Seed data is fictional; dates are internally consistent against 19 Jul 2026.</footer>
+</body>
+</html>
