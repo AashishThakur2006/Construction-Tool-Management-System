@@ -11,6 +11,23 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  async function devLogin(role: string) {
+    setError("");
+    setLoading(true);
+    const res = await fetch("/api/auth/dev", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role }),
+    });
+    if (res.ok) {
+      router.push("/dashboard");
+      router.refresh();
+    } else {
+      setError("Dev bypass failed");
+      setLoading(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -83,6 +100,31 @@ export default function LoginPage() {
               Register
             </Link>
           </p>
+          {process.env.NODE_ENV === "development" && (
+            <div className="mt-6 border-t border-dashed border-slate-200 pt-4">
+              <p className="mb-2 text-center text-xs font-medium uppercase tracking-wide text-slate-400">
+                ⚡ Dev bypass (development only)
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => devLogin("OWNER")}
+                  className="flex-1 rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+                >
+                  Enter as Owner
+                </button>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => devLogin("SITE_ENGINEER")}
+                  className="flex-1 rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+                >
+                  Enter as Site Engineer
+                </button>
+              </div>
+            </div>
+          )}
         </form>
       </div>
     </div>
