@@ -1,54 +1,52 @@
-# Construction Tools Management System - Components
+# Construction Tool & Logistics Management System - Components
 
 ## Frontend
-Responsible for the user interface.
-- Login Page
+User interface (Next.js App Router + Tailwind CSS).
+- Login / Register pages
 - Dashboard
-- Project Management
-- Machine Management
-- Maintenance Management
-- Employee Management
-- Payment Management
+- Projects, Machines, Tools & Inventory, Deliveries
+- Maintenance, Employees, Payments
+- Reports
 
 ## Backend
-Responsible for application logic.
-- User Authentication
-- Business Logic
-- CRUD Operations
-- Validation
-- Role Management
+Application logic (Next.js route handlers).
+- Authentication (Supabase Auth) + session/role guards
+- Business logic and CRUD operations
+- Input validation (pure helpers in `lib/validation.ts`)
+- Role management (Owner / Site Engineer)
+- Stock and status reconciliation (tools, machines, maintenance)
 
-## Database
-Stores application data.
-- Users
-- Projects
-- Machines
-- Employees
-- Maintenance Records
-- Payments
+## Database (Supabase Postgres)
+- profiles (app role + name, linked to auth.users)
+- projects
+- machines
+- machine_transfers
+- tools
+- tool_transactions
+- deliveries
+- employees
+- maintenance_records
+- payments
 
 ## User Roles
 
 ### Owner
-- Manage projects
-- Register equipment
-- Monitor machine status
-- Manage payments
-- View reports
+- Manage projects, register equipment and tools, manage payments
+- Full delete rights, view reports
 
 ### Site Engineer
-- Allocate machines
-- Raise maintenance requests
-- Assign maintenance workers
-- Update project progress
-- Monitor payments
+- Allocate machines, issue/return tools, schedule deliveries
+- Raise maintenance requests, assign workers, update progress
+- Monitor payments and reports
 
 ## System Modules
-- Authentication Module
-- Dashboard Module
-- Project Module
-- Machine Module
-- Maintenance Module
-- Employee Module
-- Payment Module
-- Reporting Module
+- Authentication
+- Dashboard
+- Project
+- Machine
+- Tools & Inventory
+- Delivery
+- Maintenance
+- Employee
+- Payment
+- Reporting

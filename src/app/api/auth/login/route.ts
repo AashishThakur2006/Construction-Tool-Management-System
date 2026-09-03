@@ -1,15 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import db from "@/lib/db";
-import { createSession, Role } from "@/lib/auth";
-
-type UserRow = {
-  id: number;
-  name: string;
-  email: string;
-  password_hash: string;
-  role: Role;
-};
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
@@ -23,22 +13,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const user = db
-    .prepare("SELECT * FROM users WHERE email = ?")
-    .get(email) as UserRow | undefined;
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+  if (error) {
     return NextResponse.json(
       { error: "Invalid email or password" },
       { status: 401 }
     );
   }
-
-  await createSession({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  });
   return NextResponse.json({ ok: true });
 }

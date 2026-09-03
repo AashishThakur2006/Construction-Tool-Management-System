@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import db from "@/lib/db";
+import sql from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import SearchBar from "@/components/SearchBar";
 import MachinesClient, { Machine } from "./machines-client";
@@ -13,20 +13,21 @@ export default async function MachinesPage({
 }) {
   const { q = "" } = await searchParams;
   const session = await getSession();
+  const like = `%${q}%`;
 
-  const machines = db
-    .prepare(
-      `SELECT m.*, p.name AS project_name
-       FROM machines m
-       LEFT JOIN projects p ON p.id = m.project_id
-       WHERE m.name LIKE ? OR m.type LIKE ? OR m.model LIKE ? OR m.status LIKE ?
-       ORDER BY m.created_at DESC`
-    )
-    .all(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`) as Machine[];
+  const machines = (await sql`
+    SELECT m.*, p.name AS project_name
+    FROM machines m
+    LEFT JOIN projects p ON p.id = m.project_id
+    WHERE m.name ILIKE ${like} OR m.type ILIKE ${like}
+       OR m.model ILIKE ${like} OR m.status ILIKE ${like}
+    ORDER BY m.created_at DESC`) as unknown as Machine[];
 
-  const projects = db
-    .prepare("SELECT id, name FROM projects ORDER BY name")
-    .all() as { id: number; name: string }[];
+  const projects = (await sql`
+    SELECT id, name FROM projects ORDER BY name`) as unknown as {
+    id: number;
+    name: string;
+  }[];
 
   return (
     <div>

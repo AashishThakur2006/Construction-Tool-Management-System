@@ -1,11 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import db from "@/lib/db";
+import sql from "@/lib/db";
 import { requireSession, requireRole } from "@/lib/auth";
-import { errorResponse } from "@/lib/api";
-
-const STATUSES = ["PENDING", "IN_PROGRESS", "COMPLETED"];
+import { errorResponse, badRequest, notFound } from "@/lib/api";
+import { money, oneOf, posIntOrNull, str, MAINTENANCE_STATUSES } from "@/lib/validation";
 
 type RecordRow = { id: number; machine_id: number; project_id: number | null };
+
+async function loadRecord(id: string) {
+  const [record] = (await sql`
+    SELECT mr.id, mr.machine_id, m.project_id
+    FROM maintenance_records mr JOIN machines m ON m.id = mr.machine_id
+    WHERE mr.id = ${id}`) as unknown as RecordRow[];
+  return record;
+}
+
+/** Re-derive the machine's status from its remaining open maintenance work. */
+async function syncMachineStatus(machineId: number, projectId: number | null) {
+  const [{ open }] = (await sql`
+    SELECT COUNT(*)::int AS open FROM maintenance_records
+    WHERE machine_id = ${machineId} AND status != 'COMPLETED'`) as unknown as { open: number }[];
+  if (open === 0) {
+    await sql`UPDATE machines SET status = ${projectId ? "ALLOCATED" : "AVAILABLE"}
+             WHERE id = ${machineId}`;
+  }
+}
 
 export async function PUT(
   request: NextRequest,
@@ -14,61 +32,32 @@ export async function PUT(
   try {
     await requireSession();
     const { id } = await params;
+    const record = await loadRecord(id);
+    if (!record) return notFound("Maintenance record not found");
+
     const body = await request.json();
+    const description = str(body.description);
+    if (!description) return badRequest("Description is required");
 
-    const record = db
-      .prepare(
-        `SELECT mr.id, mr.machine_id, m.project_id
-         FROM maintenance_records mr JOIN machines m ON m.id = mr.machine_id
-         WHERE mr.id = ?`
-      )
-      .get(id) as RecordRow | undefined;
-    if (!record) {
-      return NextResponse.json({ error: "Maintenance record not found" }, { status: 404 });
-    }
-
-    const description = (body.description ?? "").trim();
-    if (!description) {
-      return NextResponse.json({ error: "Description is required" }, { status: 400 });
-    }
-    const status = STATUSES.includes(body.status) ? body.status : "PENDING";
-    const assignedEmployeeId = body.assigned_employee_id
-      ? Number(body.assigned_employee_id)
-      : null;
+    const status = oneOf(body.status, MAINTENANCE_STATUSES, "PENDING");
+    const assignedEmployeeId = posIntOrNull(body.assigned_employee_id);
 
     if (assignedEmployeeId) {
-      const employee = db
-        .prepare("SELECT id FROM employees WHERE id = ?")
-        .get(assignedEmployeeId);
-      if (!employee) {
-        return NextResponse.json({ error: "Employee not found" }, { status: 404 });
-      }
+      const [employee] = await sql`SELECT id FROM employees WHERE id = ${assignedEmployeeId}`;
+      if (!employee) return notFound("Employee not found");
     }
 
-    db.prepare(
-      `UPDATE maintenance_records
-       SET description = ?, status = ?, assigned_employee_id = ?, cost = ?,
-           updated_at = datetime('now')
-       WHERE id = ?`
-    ).run(description, status, assignedEmployeeId, Number(body.cost) || 0, id);
+    await sql`
+      UPDATE maintenance_records SET
+        description = ${description}, status = ${status},
+        assigned_employee_id = ${assignedEmployeeId},
+        cost = ${money(body.cost)}, updated_at = now()
+      WHERE id = ${id}`;
 
-    // Keep the machine's status in sync with its open maintenance work.
     if (status === "COMPLETED") {
-      const openCount = db
-        .prepare(
-          "SELECT COUNT(*) AS c FROM maintenance_records WHERE machine_id = ? AND status != 'COMPLETED'"
-        )
-        .get(record.machine_id) as { c: number };
-      if (openCount.c === 0) {
-        db.prepare("UPDATE machines SET status = ? WHERE id = ?").run(
-          record.project_id ? "ALLOCATED" : "AVAILABLE",
-          record.machine_id
-        );
-      }
+      await syncMachineStatus(record.machine_id, record.project_id);
     } else {
-      db.prepare("UPDATE machines SET status = 'MAINTENANCE' WHERE id = ?").run(
-        record.machine_id
-      );
+      await sql`UPDATE machines SET status = 'MAINTENANCE' WHERE id = ${record.machine_id}`;
     }
 
     return NextResponse.json({ ok: true });
@@ -84,31 +73,11 @@ export async function DELETE(
   try {
     await requireRole("OWNER");
     const { id } = await params;
+    const record = await loadRecord(id);
+    if (!record) return notFound("Maintenance record not found");
 
-    const record = db
-      .prepare(
-        `SELECT mr.id, mr.machine_id, m.project_id
-         FROM maintenance_records mr JOIN machines m ON m.id = mr.machine_id
-         WHERE mr.id = ?`
-      )
-      .get(id) as RecordRow | undefined;
-    if (!record) {
-      return NextResponse.json({ error: "Maintenance record not found" }, { status: 404 });
-    }
-
-    db.prepare("DELETE FROM maintenance_records WHERE id = ?").run(id);
-
-    const openCount = db
-      .prepare(
-        "SELECT COUNT(*) AS c FROM maintenance_records WHERE machine_id = ? AND status != 'COMPLETED'"
-      )
-      .get(record.machine_id) as { c: number };
-    if (openCount.c === 0) {
-      db.prepare("UPDATE machines SET status = ? WHERE id = ?").run(
-        record.project_id ? "ALLOCATED" : "AVAILABLE",
-        record.machine_id
-      );
-    }
+    await sql`DELETE FROM maintenance_records WHERE id = ${id}`;
+    await syncMachineStatus(record.machine_id, record.project_id);
 
     return NextResponse.json({ ok: true });
   } catch (e) {

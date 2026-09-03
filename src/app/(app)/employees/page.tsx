@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import db from "@/lib/db";
+import sql from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import SearchBar from "@/components/SearchBar";
 import EmployeesClient, { Employee } from "./employees-client";
@@ -13,14 +13,13 @@ export default async function EmployeesPage({
 }) {
   const { q = "" } = await searchParams;
   const session = await getSession();
+  const like = `%${q}%`;
 
-  const employees = db
-    .prepare(
-      `SELECT * FROM employees
-       WHERE name LIKE ? OR role LIKE ? OR phone LIKE ? OR email LIKE ?
-       ORDER BY created_at DESC`
-    )
-    .all(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`) as Employee[];
+  const employees = (await sql`
+    SELECT * FROM employees
+    WHERE name ILIKE ${like} OR role ILIKE ${like}
+       OR phone ILIKE ${like} OR email ILIKE ${like}
+    ORDER BY created_at DESC`) as unknown as Employee[];
 
   return (
     <div>

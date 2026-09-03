@@ -7,9 +7,12 @@ const LINKS = [
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
   { href: "/projects", label: "Projects", icon: "🏗️" },
   { href: "/machines", label: "Machines", icon: "🚜" },
+  { href: "/tools", label: "Tools", icon: "🧰" },
+  { href: "/deliveries", label: "Deliveries", icon: "🚚" },
   { href: "/maintenance", label: "Maintenance", icon: "🔧" },
   { href: "/employees", label: "Employees", icon: "👷" },
   { href: "/payments", label: "Payments", icon: "💰" },
+  { href: "/reports", label: "Reports", icon: "📈" },
 ];
 
 export default function Sidebar({

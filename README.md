@@ -1,79 +1,125 @@
-# Construction Tool Management System
+# Construction Tool & Logistics Management System
 
-A web-based application that helps construction companies manage projects, machines, employees, maintenance and payments through a centralized platform.
+A web application that helps a construction company run its sites from one place:
+projects, heavy machines, a quantity-tracked tool inventory, material deliveries,
+maintenance, workforce and payments — with role-based access and cross-module
+reports.
 
-Built with **Next.js (App Router) + TypeScript**, **Tailwind CSS** and **SQLite** (zero-setup, file-based database).
+Built with **Next.js (App Router) + TypeScript**, **Tailwind CSS** and
+**Supabase** (Postgres for data, Supabase Auth for sign-in).
 
 ## Features
 
-- User registration, login and logout with role-based access (Owner / Site Engineer)
-- Dashboard with live statistics of projects, machines, employees, maintenance and payments
-- Project management (add / edit / delete / search)
-- Machine management (register / update / allocate to projects)
-- Maintenance management (raise requests, assign workers, update status)
-- Employee management with role management
-- Payment management (add payments, update payment status)
-- Search and filters across all modules
+- Email/password auth via Supabase, with a `profiles` table holding the app role
+  (Owner / Site Engineer). A development-only one-click login bypass is available
+  outside production.
+- Dashboard with live counts, ongoing projects, open maintenance, low tool stock
+  and a logistics/finance summary.
+- **Projects** – add / edit / delete / search, budget and progress tracking.
+- **Machines** – register, update, allocate to a project; every move is written to
+  a machine-transfer log.
+- **Tools & Inventory** – small tools/consumables tracked by quantity; check-out
+  (`ISSUE`) and check-in (`RETURN`) adjust available stock and append to a
+  movement ledger; low-stock warnings.
+- **Deliveries** – inbound/outbound material movements with carrier, project and a
+  `SCHEDULED → IN_TRANSIT → DELIVERED` status flow.
+- **Maintenance** – raise requests, assign workers, update status; machine status
+  stays in sync with its open work.
+- **Employees** – CRUD with role and active/inactive status.
+- **Payments** – record project payments, track paid / pending totals.
+- **Reports** – machine utilisation, maintenance summary, deliveries by status,
+  low tool stock, monthly payments, and project budget-vs-spend.
+- Search across every module.
 
-## Getting Started
+## Getting started
+
+### 1. Configure the environment
+
+```bash
+cp .env.example .env.local
+```
+
+Fill `.env.local` from your Supabase project (Settings → API / Database):
+
+| Variable | Where |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Settings → API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Settings → API → publishable / anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Settings → API → service role / secret key (server-only) |
+| `DATABASE_URL` | Settings → Database → Connection pooling → **Session** (port 5432) |
+
+### 2. Create the schema
+
+Run the migration in `supabase/migrations/0001_init.sql` against your project —
+via the Supabase SQL editor, the Supabase CLI (`supabase db push`), or `psql`.
+It creates every table plus a trigger that inserts a `profiles` row whenever an
+auth user signs up, and enables RLS (the app connects as the Postgres role over
+the pooler, which bypasses RLS; authorization is enforced in the API layer).
+
+Make sure **auto-confirm** is on (Auth → Providers → Email) if you want sign-ups
+to log in immediately without an email round-trip.
+
+### 3. Install, seed, run
 
 ```bash
 npm install
+npm run seed     # optional: demo data + two demo accounts
 npm run dev
 ```
 
-Open http://localhost:3000, register an account (choose the Owner or Site Engineer role) and log in.
+Open http://localhost:3000. Sign in with a demo account:
 
-The SQLite database is created automatically at `data/ctms.db` on first run.
+- `owner@ctms.demo` / `demo1234` — Owner
+- `engineer@ctms.demo` / `demo1234` — Site Engineer
 
-## Repository Layout
+## Scripts
 
-This repository holds the main application plus two standalone static builds. Each is independent — the two static folders need no install step and no backend.
-
-| Folder | What it is |
+| Command | Purpose |
 |---|---|
-| `src/` | The main Next.js application — full stack, SQLite-backed |
-| `plinth/` | **Plinth** — a complete design-led frontend prototype of the same product |
-| `website/` | **Atelier Terrane** — a premium marketing/demo site |
+| `npm run dev` | Dev server |
+| `npm run build` / `npm start` | Production build / serve |
+| `npm test` | Unit tests (Vitest) |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run seed` | Reset domain tables and load demo data |
 
-### Main application
+CI (`.github/workflows/ci.yml`) runs the tests, the type check and a production
+build on every push and pull request.
+
+## Repository layout
 
 ```
 src/
-  app/            # Pages and API routes (Next.js App Router)
-  lib/            # Database connection + auth helpers
-  components/     # Shared UI components
+  app/
+    (auth)/            login + register pages
+    (app)/             dashboard + one folder per module (page.tsx + *-client.tsx)
+    api/               route handlers, one folder per resource
+  components/          Modal, SearchBar, Sidebar, StatusBadge
+  lib/
+    db.ts              postgres client (Supabase session pooler)
+    supabase/          SSR + middleware auth clients
+    auth.ts            session + role guards used by the API layer
+    validation.ts      pure input helpers (unit-tested)
+supabase/migrations/   database schema
+scripts/seed.mjs       demo data seeder
+plinth/                standalone design-led frontend prototype (no backend)
 ```
 
 ### Plinth — frontend prototype
 
-A complete, navigable frontend for the platform with a mock data layer: no backend, no auth server, no build step. Plain ES modules and a hash router, served as static files.
-
-It covers authentication, role-scoped dashboards, jobs, an asset register, the allocation flow (allocate / return / transfer), employees, a maintenance pipeline, a payments ledger, global search and settings. Two demo roles — Owner and Site Engineer — see genuinely different data, and the role switcher rescopes the whole register live.
+`plinth/` is a self-contained, navigable frontend for the same product with a
+mock data layer: no backend, no build step, plain ES modules and a hash router.
 
 ```bash
 cd plinth
 python -m http.server 8741
 ```
 
-Open http://127.0.0.1:8741 and sign in with any password of 4 or more characters. It **must** be served over http; opening `index.html` directly from the file system fails, because browsers block ES modules on `file://`.
-
-The design system, interface vocabulary, component inventory and an iteration log are documented in [`plinth/guide.html`](plinth/guide.html). The signature canvas animation can be viewed in isolation at [`plinth/signature-demo.html`](plinth/signature-demo.html).
-
-Seed data is fictional and internally consistent against a fixed date of 19 July 2026.
-
-### Website
-
-A static marketing site. Serve it the same way:
-
-```bash
-cd website
-python -m http.server 8742
-```
+Open http://127.0.0.1:8741 and sign in with any password of 4+ characters. It
+must be served over http (ES modules are blocked on `file://`). Design system and
+iteration log: [`plinth/guide.html`](plinth/guide.html).
 
 ## Docs
 
 - [Project Scope](scope.md)
 - [Components](components.md)
 - [MVP](mvp.md)
-- [Plinth design guide](plinth/guide.html) — palette, typography, density system, vocabulary and iteration log

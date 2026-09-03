@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import db from "@/lib/db";
+import sql from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import SearchBar from "@/components/SearchBar";
 import PaymentsClient, { Payment } from "./payments-client";
@@ -13,29 +13,27 @@ export default async function PaymentsPage({
 }) {
   const { q = "" } = await searchParams;
   const session = await getSession();
+  const like = `%${q}%`;
 
-  const payments = db
-    .prepare(
-      `SELECT pay.*, p.name AS project_name
-       FROM payments pay
-       LEFT JOIN projects p ON p.id = pay.project_id
-       WHERE pay.description LIKE ? OR pay.status LIKE ? OR p.name LIKE ?
-       ORDER BY pay.created_at DESC`
-    )
-    .all(`%${q}%`, `%${q}%`, `%${q}%`) as Payment[];
+  const payments = (await sql`
+    SELECT pay.id, pay.project_id, pay.description, pay.amount::float8 AS amount,
+           pay.status, pay.payment_date, pay.created_at, p.name AS project_name
+    FROM payments pay
+    LEFT JOIN projects p ON p.id = pay.project_id
+    WHERE pay.description ILIKE ${like} OR pay.status ILIKE ${like} OR p.name ILIKE ${like}
+    ORDER BY pay.created_at DESC`) as unknown as Payment[];
 
-  const projects = db
-    .prepare("SELECT id, name FROM projects ORDER BY name")
-    .all() as { id: number; name: string }[];
+  const projects = (await sql`
+    SELECT id, name FROM projects ORDER BY name`) as unknown as {
+    id: number;
+    name: string;
+  }[];
 
-  const totals = db
-    .prepare(
-      `SELECT
-         COALESCE(SUM(CASE WHEN status = 'PAID' THEN amount END), 0) AS paid,
-         COALESCE(SUM(CASE WHEN status = 'PENDING' THEN amount END), 0) AS pending
-       FROM payments`
-    )
-    .get() as { paid: number; pending: number };
+  const [totals] = (await sql`
+    SELECT
+      COALESCE(SUM(amount) FILTER (WHERE status = 'PAID'), 0)::float8 AS paid,
+      COALESCE(SUM(amount) FILTER (WHERE status = 'PENDING'), 0)::float8 AS pending
+    FROM payments`) as unknown as { paid: number; pending: number }[];
 
   return (
     <div>

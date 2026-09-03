@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import db from "@/lib/db";
+import sql from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import SearchBar from "@/components/SearchBar";
 import ProjectsClient, { Project } from "./projects-client";
@@ -13,14 +13,14 @@ export default async function ProjectsPage({
 }) {
   const { q = "" } = await searchParams;
   const session = await getSession();
+  const like = `%${q}%`;
 
-  const projects = db
-    .prepare(
-      `SELECT * FROM projects
-       WHERE name LIKE ? OR location LIKE ? OR status LIKE ?
-       ORDER BY created_at DESC`
-    )
-    .all(`%${q}%`, `%${q}%`, `%${q}%`) as Project[];
+  const projects = (await sql`
+    SELECT id, name, location, status, start_date, end_date,
+           budget::float8 AS budget, progress, created_at
+    FROM projects
+    WHERE name ILIKE ${like} OR location ILIKE ${like} OR status ILIKE ${like}
+    ORDER BY created_at DESC`) as unknown as Project[];
 
   return (
     <div>

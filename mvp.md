@@ -1,57 +1,54 @@
-# Construction Tools Management System - Minimum Viable Product (MVP)
+# Construction Tool & Logistics Management System - MVP
 
 ## Goal
-Develop a working prototype that demonstrates the core functionalities of the Construction Tools Management System.
+A working prototype that demonstrates the core functionality end to end.
 
 ## Core Features
 
 ### Authentication
-- User Registration
-- Login
-- Logout
+- Registration, login, logout (Supabase Auth)
+- Role stored per user (Owner / Site Engineer)
 
 ### Dashboard
-- Total Projects
-- Total Machines
-- Total Employees
-- Total Maintenance Records
-- Total Payments
+- Counts: projects, machines, tools, employees, maintenance, deliveries, payments
+- Ongoing projects, open maintenance, low tool stock, logistics/finance summary
 
 ### Project Module
-- Add Project
-- Edit Project
-- Delete Project
-- View Projects
+- Add / edit / delete / view projects
 
 ### Machine Module
-- Register Machine
-- Update Machine Details
-- Allocate Machine
+- Register machine, update details, allocate to project
+- Machine transfer log
+
+### Tools & Inventory Module
+- Add / edit / delete tools with total and available quantity
+- Issue (check-out) and return (check-in) with stock adjustment
+- Movement ledger, low-stock warnings
+
+### Delivery Module
+- Schedule inbound / outbound deliveries
+- Status flow: Scheduled -> In transit -> Delivered (or Cancelled)
 
 ### Maintenance Module
-- Raise Maintenance Request
-- Assign Maintenance Worker
-- Update Maintenance Status
+- Raise request, assign worker, update status
+- Machine status kept in sync with open work
 
 ### Employee Module
-- Add Employee
-- Update Employee
-- Delete Employee
-- Employee Role Management
+- Add / update / delete employees, role management
 
 ### Payment Module
-- Add Payment
-- Update Payment Status
+- Add payment, update status, paid / pending totals
+
+### Reports Module
+- Machine utilisation, maintenance summary, deliveries by status,
+  low tool stock, monthly payments, project budget vs. spend
 
 ### Search
-- Search Projects
-- Search Machines
-- Search Employees
-- Search Payments
+- Search across all modules
 
 ## Success Criteria
-- Secure login
-- CRUD operations working
-- Dashboard displaying correct information
+- Secure login with role-based access
+- CRUD operations working across every module
+- Dashboard and reports show correct aggregates
+- Tool issue/return and machine allocation update state correctly
 - Search and filters working
-- Maintenance and payment updates working correctly

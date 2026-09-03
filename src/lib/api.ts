@@ -8,3 +8,11 @@ export function errorResponse(e: unknown) {
   console.error(e);
   return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }
+
+export function badRequest(message: string) {
+  return NextResponse.json({ error: message }, { status: 400 });
+}
+
+export function notFound(message: string) {
+  return NextResponse.json({ error: message }, { status: 404 });
+}

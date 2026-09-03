@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import db from "@/lib/db";
+import sql from "@/lib/db";
 import { requireSession } from "@/lib/auth";
-import { errorResponse } from "@/lib/api";
+import { errorResponse, badRequest, notFound } from "@/lib/api";
+import { money, str } from "@/lib/validation";
 
 export async function GET(request: NextRequest) {
   try {
     await requireSession();
-    const q = request.nextUrl.searchParams.get("q") ?? "";
-    const rows = db
-      .prepare(
-        `SELECT mr.*, m.name AS machine_name, e.name AS employee_name, u.name AS raised_by_name
-         FROM maintenance_records mr
-         JOIN machines m ON m.id = mr.machine_id
-         LEFT JOIN employees e ON e.id = mr.assigned_employee_id
-         LEFT JOIN users u ON u.id = mr.raised_by
-         WHERE mr.description LIKE ? OR mr.status LIKE ? OR m.name LIKE ? OR e.name LIKE ?
-         ORDER BY mr.created_at DESC`
-      )
-      .all(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`);
+    const like = `%${request.nextUrl.searchParams.get("q") ?? ""}%`;
+    const rows = await sql`
+      SELECT mr.id, mr.machine_id, mr.description, mr.status,
+             mr.assigned_employee_id, mr.cost::float8 AS cost,
+             mr.created_at, mr.updated_at,
+             m.name AS machine_name, e.name AS employee_name, u.name AS raised_by_name
+      FROM maintenance_records mr
+      JOIN machines m ON m.id = mr.machine_id
+      LEFT JOIN employees e ON e.id = mr.assigned_employee_id
+      LEFT JOIN profiles u ON u.id = mr.raised_by
+      WHERE mr.description ILIKE ${like} OR mr.status ILIKE ${like}
+         OR m.name ILIKE ${like} OR e.name ILIKE ${like}
+      ORDER BY mr.created_at DESC`;
     return NextResponse.json(rows);
   } catch (e) {
     return errorResponse(e);
@@ -29,33 +31,21 @@ export async function POST(request: NextRequest) {
     const session = await requireSession();
     const body = await request.json();
     const machineId = Number(body.machine_id);
-    const description = (body.description ?? "").trim();
+    const description = str(body.description);
 
     if (!machineId || !description) {
-      return NextResponse.json(
-        { error: "Machine and description are required" },
-        { status: 400 }
-      );
+      return badRequest("Machine and description are required");
     }
-    const machine = db
-      .prepare("SELECT id FROM machines WHERE id = ?")
-      .get(machineId);
-    if (!machine) {
-      return NextResponse.json({ error: "Machine not found" }, { status: 404 });
-    }
+    const [machine] = await sql`SELECT id FROM machines WHERE id = ${machineId}`;
+    if (!machine) return notFound("Machine not found");
 
-    const result = db
-      .prepare(
-        `INSERT INTO maintenance_records (machine_id, description, status, raised_by, cost)
-         VALUES (?, ?, 'PENDING', ?, ?)`
-      )
-      .run(machineId, description, session.id, Number(body.cost) || 0);
+    const [row] = await sql`
+      INSERT INTO maintenance_records (machine_id, description, status, raised_by, cost)
+      VALUES (${machineId}, ${description}, 'PENDING', ${session.id}, ${money(body.cost)})
+      RETURNING id`;
+    await sql`UPDATE machines SET status = 'MAINTENANCE' WHERE id = ${machineId}`;
 
-    db.prepare("UPDATE machines SET status = 'MAINTENANCE' WHERE id = ?").run(
-      machineId
-    );
-
-    return NextResponse.json({ id: Number(result.lastInsertRowid) }, { status: 201 });
+    return NextResponse.json({ id: row.id }, { status: 201 });
   } catch (e) {
     return errorResponse(e);
   }

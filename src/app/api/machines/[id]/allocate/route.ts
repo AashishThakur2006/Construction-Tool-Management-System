@@ -1,26 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import db from "@/lib/db";
+import sql from "@/lib/db";
 import { requireSession } from "@/lib/auth";
-import { errorResponse } from "@/lib/api";
+import { errorResponse, notFound } from "@/lib/api";
+import { posIntOrNull, str } from "@/lib/validation";
 
-type MachineRow = { id: number; status: string };
+type MachineRow = { id: number; status: string; project_id: number | null };
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireSession();
+    const session = await requireSession();
     const { id } = await params;
     const body = await request.json();
-    const projectId = body.project_id ? Number(body.project_id) : null;
+    const projectId = posIntOrNull(body.project_id);
+    const note = str(body.note);
 
-    const machine = db
-      .prepare("SELECT id, status FROM machines WHERE id = ?")
-      .get(id) as MachineRow | undefined;
-    if (!machine) {
-      return NextResponse.json({ error: "Machine not found" }, { status: 404 });
-    }
+    const [machine] = (await sql`
+      SELECT id, status, project_id FROM machines WHERE id = ${id}`) as unknown as MachineRow[];
+    if (!machine) return notFound("Machine not found");
     if (machine.status === "MAINTENANCE") {
       return NextResponse.json(
         { error: "Machine is under maintenance and cannot be allocated" },
@@ -29,20 +28,23 @@ export async function POST(
     }
 
     if (projectId) {
-      const project = db
-        .prepare("SELECT id FROM projects WHERE id = ?")
-        .get(projectId);
-      if (!project) {
-        return NextResponse.json({ error: "Project not found" }, { status: 404 });
-      }
-      db.prepare(
-        "UPDATE machines SET project_id = ?, status = 'ALLOCATED' WHERE id = ?"
-      ).run(projectId, id);
+      const [project] = await sql`SELECT id FROM projects WHERE id = ${projectId}`;
+      if (!project) return notFound("Project not found");
+      await sql`
+        UPDATE machines SET project_id = ${projectId}, status = 'ALLOCATED'
+        WHERE id = ${id}`;
     } else {
-      db.prepare(
-        "UPDATE machines SET project_id = NULL, status = 'AVAILABLE' WHERE id = ?"
-      ).run(id);
+      await sql`
+        UPDATE machines SET project_id = NULL, status = 'AVAILABLE' WHERE id = ${id}`;
     }
+
+    // Record the move on the transfer log when the site actually changes.
+    if ((machine.project_id ?? null) !== (projectId ?? null)) {
+      await sql`
+        INSERT INTO machine_transfers (machine_id, from_project_id, to_project_id, transferred_by, note)
+        VALUES (${id}, ${machine.project_id}, ${projectId}, ${session.id}, ${note})`;
+    }
+
     return NextResponse.json({ ok: true });
   } catch (e) {
     return errorResponse(e);

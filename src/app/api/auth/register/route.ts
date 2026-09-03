@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import db from "@/lib/db";
-import { createSession, Role } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { isEmail, str } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
-  const name = (body?.name ?? "").trim();
-  const email = (body?.email ?? "").trim().toLowerCase();
+  const name = str(body?.name);
+  const email = str(body?.email).toLowerCase();
   const password = body?.password ?? "";
-  const role: Role = body?.role === "SITE_ENGINEER" ? "SITE_ENGINEER" : "OWNER";
+  const role = body?.role === "OWNER" ? "OWNER" : "SITE_ENGINEER";
 
   if (!name || !email || !password) {
     return NextResponse.json(
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
-  if (!/^\S+@\S+\.\S+$/.test(email)) {
+  if (!isEmail(email)) {
     return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
   }
   if (password.length < 6) {
@@ -26,21 +25,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
-  if (existing) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { name, role } },
+  });
+
+  if (error) {
+    const status = /already registered|exists/i.test(error.message) ? 409 : 400;
+    return NextResponse.json({ error: error.message }, { status });
+  }
+  if (!data.session) {
+    // Email confirmation is on for this project; the profile trigger has
+    // still run, so the user can sign in once confirmed.
     return NextResponse.json(
-      { error: "An account with this email already exists" },
-      { status: 409 }
+      { ok: true, message: "Check your email to confirm your account." },
+      { status: 201 }
     );
   }
-
-  const passwordHash = bcrypt.hashSync(password, 10);
-  const result = db
-    .prepare(
-      "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)"
-    )
-    .run(name, email, passwordHash, role);
-
-  await createSession({ id: Number(result.lastInsertRowid), name, email, role });
   return NextResponse.json({ ok: true }, { status: 201 });
 }
