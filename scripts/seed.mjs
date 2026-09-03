@@ -1,23 +1,17 @@
 /**
- * Demo data seeder.
+ * Plinth demo seeder.  npm run seed
  *
- *   npm run seed
- *
- * Wipes the domain tables (NOT auth users) and inserts a small, internally
- * consistent dataset, plus two demo accounts:
- *   owner@ctms.demo    / demo1234   (Owner)
- *   engineer@ctms.demo / demo1234   (Site Engineer)
+ * Wipes the register (not auth users) and inserts an internally consistent
+ * dataset built around TODAY = 2026-07-19, plus two demo accounts:
+ *   rajendra@plinthops.in / demo1234   (Owner,        E-001)
+ *   priya@plinthops.in    / demo1234   (Site Engineer, E-102)
  */
 import postgres from "postgres";
 import { createClient } from "@supabase/supabase-js";
 
-const { DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } =
-  process.env;
-
+const { DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
 if (!DATABASE_URL || !NEXT_PUBLIC_SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error(
-    "Missing env. Need DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (see .env.local)."
-  );
+  console.error("Missing env — need DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (see .env.local).");
   process.exit(1);
 }
 
@@ -26,137 +20,276 @@ const admin = createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, 
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const DEMO_USERS = [
-  { email: "owner@ctms.demo", name: "Priya Sharma", role: "OWNER" },
-  { email: "engineer@ctms.demo", name: "Arjun Mehta", role: "SITE_ENGINEER" },
+const TODAY = "2026-07-19";
+
+/* ---------- deterministic generators (ported from Plinth's data.js) ---------- */
+function rng(seed) {
+  return function () {
+    seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const R = rng(20260719);
+const between = (a, b) => {
+  const t = new Date(a).getTime() + R() * (new Date(b).getTime() - new Date(a).getTime());
+  return new Date(t).toISOString().slice(0, 10);
+};
+const daysAgo = (d) => new Date(new Date(TODAY).getTime() - d * 864e5).toISOString().slice(0, 10);
+const inr = (n) => "₹" + n.toLocaleString("en-IN");
+
+/* ---------- jobs ---------- */
+const jobs = [
+  { id: "JOB-24-004", name: "Wagholi Warehouse Park — Shed 2", client: "Panchshil Industrial", location: "Wagholi, Pune", status: "Completed", started: "2024-03-11", ends: "2024-12-19", engineer_id: "E-104" },
+  { id: "JOB-24-009", name: "Chakan Press Shop Bay Extension", client: "Bharat Forge Facilities", location: "Chakan MIDC, Pune", status: "Completed", started: "2024-06-02", ends: "2025-02-27", engineer_id: "E-103" },
+  { id: "JOB-24-011", name: "Mundhwa Riverside Depot Expansion", client: "MSRDC", location: "Mundhwa, Pune", status: "Active", started: "2024-08-05", ends: "2026-11-20", engineer_id: "E-102" },
+  { id: "JOB-24-014", name: "Katraj Flyover Deck Replacement", client: "L&T Transportation", location: "Katraj, Pune", status: "Active", started: "2024-11-04", ends: "2026-09-30", engineer_id: "E-103" },
+  { id: "JOB-24-016", name: "Mula Riverbank Outfall Repairs", client: "PMC Drainage Department", location: "Aundh, Pune", status: "Completed", started: "2024-09-23", ends: "2025-06-12", engineer_id: "E-105" },
+  { id: "JOB-24-017", name: "Ranjangaon Forge Hall Strengthening", client: "Tata Projects", location: "Ranjangaon MIDC", status: "Active", started: "2024-12-09", ends: "2026-08-28", engineer_id: "E-104" },
+  { id: "JOB-25-002", name: "Baner Water Main Relay", client: "Pune Smart City JV", location: "Baner Road, Pune", status: "Active", started: "2025-02-10", ends: "2026-12-18", engineer_id: "E-104" },
+  { id: "JOB-25-003", name: "FC Road Streetscape — Phase 1", client: "Shapoorji Pallonji JV", location: "FC Road, Pune", status: "Completed", started: "2025-01-13", ends: "2026-03-06", engineer_id: "E-102" },
+  { id: "JOB-25-005", name: "Koregaon Park Shoring — Block 7", client: "Godrej Constructions", location: "Koregaon Park, Pune", status: "Active", started: "2025-04-21", ends: "2026-10-09", engineer_id: "E-102" },
+  { id: "JOB-25-006", name: "Talegaon Substation Enabling Works", client: "MSETCL Contractor Group", location: "Talegaon Dabhade", status: "On hold", started: "2025-03-03", ends: "2026-05-22", engineer_id: "E-105", hold_note: "Client stop-work since 22 May 2026 — utility easement dispute" },
+  { id: "JOB-25-008", name: "NMIA Landside Trench Duct", client: "L&T — Airport Package JV", location: "Ulwe, Navi Mumbai", status: "Active", started: "2025-06-30", ends: "2027-02-26", engineer_id: "E-103" },
+  { id: "JOB-25-011", name: "Sinhagad Road Retaining Walls", client: "NCC Ltd", location: "Sinhagad Road, Pune", status: "Active", started: "2025-09-15", ends: "2026-08-21", engineer_id: "E-105" },
+  { id: "JOB-25-015", name: "Indrayani Levee Raising", client: "Afcons — Sub-Package 4", location: "Alandi, Pune", status: "Mobilising", started: "2026-08-03", ends: "2027-06-30", engineer_id: "E-102" },
+  { id: "JOB-25-016", name: "Chakan Cold Storage Slab", client: "KEC Infrastructure", location: "Chakan MIDC, Pune", status: "Mobilising", started: "2026-09-14", ends: "2027-03-12", engineer_id: "E-103" },
 ];
 
-async function ensureUser({ email, name, role }) {
-  const { data, error } = await admin.auth.admin.createUser({
-    email,
-    password: "demo1234",
-    email_confirm: true,
-    user_metadata: { name, role },
+/* ---------- employees ---------- */
+const crew = [
+  ["E-001", "Rajendra Palekar", "Owner", null],
+  ["E-102", "Priya Nair", "Site Engineer", null],
+  ["E-103", "Arvind Kulkarni", "Site Engineer", null],
+  ["E-104", "Sneha Deshpande", "Site Engineer", null],
+  ["E-105", "Rohan Bhosale", "Site Engineer", null],
+  ["E-110", "Santosh Jadhav", "Plant Operator", "JOB-24-011"],
+  ["E-111", "Imran Shaikh", "Plant Operator", "JOB-24-011"],
+  ["E-112", "Balu Pawar", "Plant Operator", "JOB-24-014"],
+  ["E-113", "Ganesh More", "Plant Operator", "JOB-24-017"],
+  ["E-114", "Nitin Gaikwad", "Plant Operator", "JOB-25-002"],
+  ["E-115", "Prakash Chavan", "Plant Operator", "JOB-25-005"],
+  ["E-116", "Feroz Khan", "Plant Operator", "JOB-25-008"],
+  ["E-120", "Sunita Kamble", "Plant Mechanic", null],
+  ["E-121", "Dattatray Shinde", "Plant Mechanic", null],
+  ["E-122", "Manoj Yadav", "Plant Mechanic", null],
+  ["E-130", "Kavita Joshi", "Surveyor", "JOB-24-014"],
+  ["E-131", "Harish Patil", "Surveyor", "JOB-25-011"],
+  ["E-140", "Ravi Salunkhe", "Rigger", "JOB-24-017"],
+  ["E-141", "Deepak Waghmare", "Rigger", "JOB-25-005"],
+  ["E-142", "Anil Thorat", "Rigger", "JOB-24-011"],
+  ["E-150", "Vandana Sable", "Concrete Finisher", "JOB-25-002"],
+  ["E-151", "Abdul Momin", "Concrete Finisher", "JOB-25-011"],
+  ["E-160", "Shubhangi Dhole", "Yard Storekeeper", null],
+  ["E-161", "Vitthal Kadam", "Truck Driver", null],
+  ["E-162", "Sagar Bhandari", "Truck Driver", null],
+  ["E-170", "Meera Kulkarni", "Office Administrator", null],
+];
+const employees = crew.map(([id, name, role, job_id], i) => ({
+  id, name, role, job_id,
+  phone: `+91 98${((220 + i * 3) % 900) + 100} ${String(40100 + i * 731).slice(0, 5)}`,
+  email: name.toLowerCase().replace(/[^a-z ]/g, "").replace(/ /g, ".") + "@plinthops.in",
+  started_on: between("2018-01-15", "2025-11-01"),
+  status: i === 21 ? "On leave" : "Active",
+}));
+
+/* ---------- assets ---------- */
+const catalog = [
+  ["Earthmoving", "CAT 320 Excavator", [11500000, 16000000]],
+  ["Earthmoving", "CAT 308 Mini Excavator", [5200000, 7200000]],
+  ["Earthmoving", "Komatsu PC210 Excavator", [10500000, 14500000]],
+  ["Earthmoving", "Bobcat S650 Skid Steer", [2800000, 3900000]],
+  ["Earthmoving", "JCB 3DX Backhoe Loader", [3200000, 4200000]],
+  ["Lifting", "Genie GS-1932 Scissor Lift", [1200000, 1750000]],
+  ["Lifting", "Genie Z-45 Boom Lift", [4000000, 5500000]],
+  ["Lifting", "Manitou MT 625 Telehandler", [6000000, 7800000]],
+  ["Lifting", "Kito 2 t Chain Block", [75000, 135000]],
+  ["Concrete", "Whiteman B446 Power Trowel", [270000, 430000]],
+  ["Concrete", "Wacker BS60-4 Rammer", [220000, 300000]],
+  ["Concrete", "Husqvarna K770 Cut-off Saw", [92000, 125000]],
+  ["Concrete", "Belle Minimix 150 Mixer", [67000, 108000]],
+  ["Power & Air", "Atlas Copco XAS 88 Compressor", [1450000, 2000000]],
+  ["Power & Air", "Honda EU70is Generator", [400000, 520000]],
+  ["Power & Air", "Kirloskar KG1-62.5 Generator", [2300000, 3250000]],
+  ["Power & Air", "Hilti TE 3000-AVR Breaker", [175000, 240000]],
+  ["Survey", "Leica TS16 Total Station", [2150000, 2850000]],
+  ["Survey", "Topcon RL-H5A Laser Level", [58000, 92000]],
+  ["Access", "BoSS Clima 6.2 m Tower", [280000, 425000]],
+  ["Site Support", "Wacker PT3 Trash Pump", [185000, 285000]],
+  ["Site Support", "Ador Weldmaker 400 Welder", [320000, 450000]],
+  ["Site Support", "SMC TL90 Lighting Tower", [800000, 1200000]],
+  ["Site Support", "Karcher HD 6/13 Washer", [75000, 118000]],
+];
+const activeJobs = jobs.filter((j) => j.status === "Active").map((j) => j.id);
+const completedJobs = jobs.filter((j) => j.status === "Completed");
+const serialFor = (model, n) =>
+  `${model.split(" ")[0].slice(0, 3).toUpperCase()}-${String(40000 + n * 137 + Math.floor(R() * 90)).slice(0, 5)}`;
+
+const assets = [];
+const WORKSHOP_IDS = [];
+for (let n = 0; n < 64; n++) {
+  const [category, model, [lo, hi]] = catalog[n % catalog.length];
+  const id = `AST-${String(101 + n).padStart(4, "0")}`;
+  const purchased = between("2019-02-01", "2025-10-01");
+  const condRoll = R();
+  const condition = condRoll < 0.42 ? "A" : condRoll < 0.76 ? "B" : condRoll < 0.94 ? "C" : "D";
+  let status, job_id = null, allocated_on = null;
+  if (n % 9 === 4 && WORKSHOP_IDS.length < 7) {
+    status = "In workshop";
+    WORKSHOP_IDS.push(id);
+  } else if (n % 3 === 2) {
+    status = "In yard";
+  } else {
+    status = "Allocated";
+    job_id = activeJobs[n % activeJobs.length];
+    const job = jobs.find((j) => j.id === job_id);
+    const windowStart = job.started > purchased ? job.started : purchased;
+    allocated_on = between(windowStart, TODAY);
+  }
+  assets.push({
+    id, category, model, serial: serialFor(model, n),
+    purchased, value: Math.round((lo + R() * (hi - lo)) / 1000) * 1000,
+    condition, status, job_id, allocated_on, hours: Math.round(120 + R() * 5200),
+  });
+}
+
+/* ---------- per-asset history ---------- */
+const history = [];
+assets.forEach((a, i) => {
+  history.push({ asset_id: a.id, on: a.purchased, kind: "Registered", note: `Purchased and registered · ${inr(a.value)}` });
+  const past = completedJobs[i % completedJobs.length];
+  if (past && past.started > a.purchased) {
+    history.push({ asset_id: a.id, on: between(past.started, past.ends), kind: "Allocated", note: `Allocated to ${past.id} — ${past.name}` });
+    history.push({ asset_id: a.id, on: past.ends, kind: "Returned", note: `Returned to yard at ${past.id} completion` });
+  }
+  if (a.status === "Allocated") {
+    history.push({ asset_id: a.id, on: a.allocated_on, kind: "Allocated", note: `Allocated to ${a.job_id} — ${jobs.find((j) => j.id === a.job_id).name}` });
+  }
+});
+history.sort((x, y) => x.on.localeCompare(y.on));
+
+/* ---------- maintenance ---------- */
+const faults = [
+  "Hydraulic hose weeping at boom ram", "Track tension slack beyond limits",
+  "Charging fault — alternator output low", "Cut depth guard cracked",
+  "Coolant leak at water pump", "Deadman trigger intermittent",
+  "Mast chain stretch at limit", "Engine hunting under load",
+  "Slew ring play above tolerance", "Fuel line perished at tank union",
+  "Emergency stop fails to latch", "Platform gate spring broken",
+];
+let mrN = 0;
+function mr(asset_id, status, offsetDays, cost, reporter_id, extra = {}) {
+  mrN += 1;
+  return {
+    id: `MR-${140 + mrN}`, asset_id, status, reported: daysAgo(offsetDays),
+    fault: faults[mrN % faults.length], est_cost: cost, reporter_id,
+    mechanic_id: null, approved_on: null, workshop_on: null, resolved_on: null,
+    rejected_on: null, reject_note: null, overdue: false, ...extra,
+  };
+}
+const maintenance = [
+  mr(WORKSHOP_IDS[0], "In workshop", 21, 290000, "E-102", { approved_on: daysAgo(18), workshop_on: daysAgo(15), mechanic_id: "E-120" }),
+  mr(WORKSHOP_IDS[1], "In workshop", 13, 158000, "E-103", { approved_on: daysAgo(11), workshop_on: daysAgo(9), mechanic_id: "E-121" }),
+  mr(WORKSHOP_IDS[2], "In workshop", 9, 65000, "E-105", { approved_on: daysAgo(7), workshop_on: daysAgo(6), mechanic_id: "E-122" }),
+  mr(WORKSHOP_IDS[3], "In workshop", 30, 442000, "E-104", { approved_on: daysAgo(27), workshop_on: daysAgo(24), mechanic_id: "E-120", overdue: true }),
+  mr(WORKSHOP_IDS[4], "Approved", 6, 196000, "E-102", { approved_on: daysAgo(3) }),
+  mr(WORKSHOP_IDS[5], "Approved", 4, 84000, "E-103", { approved_on: daysAgo(1) }),
+  mr(WORKSHOP_IDS[6], "Reported", 2, 123000, "E-105"),
+  mr("AST-0105", "Reported", 1, 54000, "E-102"),
+  mr("AST-0117", "Reported", 5, 262000, "E-104", { overdue: true }),
+  mr("AST-0122", "Resolved", 64, 101000, "E-103", { approved_on: daysAgo(60), workshop_on: daysAgo(58), resolved_on: daysAgo(49), mechanic_id: "E-121" }),
+  mr("AST-0131", "Resolved", 41, 233000, "E-105", { approved_on: daysAgo(38), workshop_on: daysAgo(35), resolved_on: daysAgo(30), mechanic_id: "E-122" }),
+  mr("AST-0140", "Resolved", 25, 36000, "E-102", { approved_on: daysAgo(24), workshop_on: daysAgo(22), resolved_on: daysAgo(20), mechanic_id: "E-120" }),
+  mr("AST-0126", "Rejected", 33, 710000, "E-104", { rejected_on: daysAgo(29), reject_note: "Repair exceeds 60% of replacement value — schedule for disposal review instead" }),
+  mr("AST-0148", "Rejected", 12, 45000, "E-103", { rejected_on: daysAgo(10), reject_note: "Duplicate of MR-151 raised the same week" }),
+];
+
+/* ---------- payments ---------- */
+const payees = [
+  "Gmmco Ltd — CAT parts", "Sanghvi Movers — cross-hire", "Deccan Sand & Aggregates",
+  "TIL Ltd — parts counter", "Powerica generator service", "HP Fuels — bulk diesel",
+  "Pune Crane Services", "SafeZone Traffic Management",
+];
+let pN = 0;
+function pay(job_id, payee, description, amount, status, issuedDaysAgo, dueDaysFromIssue, extra = {}) {
+  pN += 1;
+  const issued = daysAgo(issuedDaysAgo);
+  const due = new Date(new Date(issued).getTime() + dueDaysFromIssue * 864e5).toISOString().slice(0, 10);
+  return {
+    id: `INV-26${String(400 + pN * 7)}`, job_id, payee, description, amount, status, issued, due,
+    paid_on: null, voided_on: null, dispute_note: null, ...extra,
+  };
+}
+const payments = [
+  pay("JOB-24-011", payees[0], "PC210 undercarriage rebuild — parts", 1040000, "Paid", 88, 30, { paid_on: daysAgo(55) }),
+  pay("JOB-24-011", payees[1], "Cross-hired 20 t roller, 6 weeks", 820000, "Overdue", 71, 30),
+  pay("JOB-24-014", payees[2], "Structural backfill, 340 t", 1360000, "Paid", 62, 30, { paid_on: daysAgo(28) }),
+  pay("JOB-24-014", payees[7], "Lane closure crew, deck pours 4–6", 1810000, "Pending", 18, 45),
+  pay("JOB-24-017", payees[4], "Telehandler 500 h service", 325000, "Paid", 47, 30, { paid_on: daysAgo(12) }),
+  pay("JOB-24-017", payees[6], "Mobile crane, truss lift day rate", 630000, "Disputed", 39, 30, { dispute_note: "Standby hours billed at working rate — contested 12 Jun 2026" }),
+  pay("JOB-25-002", payees[5], "Bulk diesel, Q2 top-up", 960000, "Paid", 51, 14, { paid_on: daysAgo(40) }),
+  pay("JOB-25-002", payees[3], "Trench shield seal kits", 168000, "Pending", 9, 30),
+  pay("JOB-25-005", payees[1], "Cross-hired piling rig attachments", 1590000, "Overdue", 64, 30),
+  pay("JOB-25-005", payees[2], "Shotcrete aggregate, 90 t", 552000, "Paid", 33, 30, { paid_on: daysAgo(5) }),
+  pay("JOB-25-008", payees[5], "Bulk diesel, airside bowser", 1180000, "Pending", 12, 30),
+  pay("JOB-25-008", payees[0], "Generator load-bank test", 183000, "Paid", 29, 14, { paid_on: daysAgo(16) }),
+  pay("JOB-25-011", payees[3], "Breaker steels and retainers", 76000, "Pending", 6, 30),
+  pay("JOB-25-011", payees[6], "Wall panel lift sequence", 478000, "Overdue", 49, 30),
+];
+
+/* ---------- accounts ---------- */
+const ACCOUNTS = [
+  { email: "rajendra@plinthops.in", name: "Rajendra Palekar", role: "OWNER", employee_id: "E-001" },
+  { email: "priya@plinthops.in", name: "Priya Nair", role: "SITE_ENGINEER", employee_id: "E-102" },
+];
+async function ensureUser({ email, name, role, employee_id }) {
+  const { error } = await admin.auth.admin.createUser({
+    email, password: "demo1234", email_confirm: true,
+    user_metadata: { name, role, employee_id },
   });
   if (error && !/already|exists|registered/i.test(error.message)) throw error;
-  if (data?.user) return data.user.id;
-
-  // Already existed — find it.
-  const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
-  const found = list.users.find((u) => u.email === email);
-  if (!found) throw new Error(`Could not resolve user ${email}`);
-  return found.id;
 }
 
+/* ---------- run ---------- */
 async function main() {
-  console.log("Creating demo accounts...");
-  const ownerId = await ensureUser(DEMO_USERS[0]);
-  await ensureUser(DEMO_USERS[1]);
-  // Make sure profiles reflect the intended names/roles.
-  for (const u of DEMO_USERS) {
+  console.log("Clearing the register…");
+  // DELETE (not TRUNCATE) so the profiles.employee_id FK degrades to NULL
+  // instead of cascade-truncating the profiles table.
+  await sql`DELETE FROM asset_history`;
+  await sql`DELETE FROM maintenance`;
+  await sql`DELETE FROM payments`;
+  await sql`DELETE FROM assets`;
+  await sql`UPDATE employees SET job_id = NULL`;
+  await sql`DELETE FROM jobs`;
+  await sql`DELETE FROM employees`;
+
+  console.log(`Inserting ${employees.length} employees, ${jobs.length} jobs, ${assets.length} assets…`);
+  // employees first without job_id (jobs not in yet), then jobs, then backfill job_id
+  await sql`INSERT INTO employees ${sql(employees.map((e) => ({ ...e, job_id: null })))}`;
+  await sql`INSERT INTO jobs ${sql(jobs.map((j) => ({ hold_note: null, ...j })))}`;
+  for (const e of employees) {
+    if (e.job_id) await sql`UPDATE employees SET job_id = ${e.job_id} WHERE id = ${e.id}`;
+  }
+  await sql`INSERT INTO assets ${sql(assets)}`;
+  await sql`INSERT INTO asset_history ${sql(history)}`;
+  await sql`INSERT INTO maintenance ${sql(maintenance)}`;
+  await sql`INSERT INTO payments ${sql(payments)}`;
+
+  console.log("Creating demo accounts…");
+  for (const acc of ACCOUNTS) await ensureUser(acc);
+  for (const acc of ACCOUNTS) {
+    // Upsert the profile directly — the signup trigger only fires for brand-new
+    // users, so an existing demo account needs its profile (re)written here.
     await sql`
-      UPDATE profiles SET name = ${u.name}, role = ${u.role}
-      WHERE id = (SELECT id FROM auth.users WHERE email = ${u.email})`;
+      INSERT INTO profiles (id, name, role, employee_id)
+      SELECT id, ${acc.name}, ${acc.role}, ${acc.employee_id}
+      FROM auth.users WHERE email = ${acc.email}
+      ON CONFLICT (id) DO UPDATE
+        SET name = EXCLUDED.name, role = EXCLUDED.role, employee_id = EXCLUDED.employee_id`;
   }
 
-  console.log("Clearing domain tables...");
-  await sql`TRUNCATE
-    deliveries, machine_transfers, tool_transactions, tools,
-    payments, maintenance_records, machines, employees, projects
-    RESTART IDENTITY CASCADE`;
-
-  console.log("Inserting projects...");
-  const projects = await sql`
-    INSERT INTO projects (name, location, status, start_date, end_date, budget, progress) VALUES
-      ('Riverside Apartments',  'Pune',      'ONGOING',   '2026-02-01', '2026-12-20', 48000000, 55),
-      ('Metro Depot Phase 2',   'Nagpur',    'ONGOING',   '2026-04-15', '2027-03-30', 92000000, 30),
-      ('Hillcrest Villas',      'Lonavala',  'PLANNED',   NULL,         NULL,         26000000, 0),
-      ('City Mall Retrofit',    'Mumbai',    'ON_HOLD',   '2026-01-10', NULL,         15000000, 40),
-      ('Airport Link Road',     'Pune',      'COMPLETED', '2025-06-01', '2026-05-15', 61000000, 100)
-    RETURNING id, name`;
-  const P = Object.fromEntries(projects.map((r) => [r.name, r.id]));
-
-  console.log("Inserting employees...");
-  const employees = await sql`
-    INSERT INTO employees (name, role, phone, email, status) VALUES
-      ('Ramesh Patil',   'OPERATOR',           '9820011111', 'ramesh@ctms.demo',  'ACTIVE'),
-      ('Suresh Kadam',   'OPERATOR',           '9820022222', 'suresh@ctms.demo',  'ACTIVE'),
-      ('Vikram Singh',   'MAINTENANCE_WORKER', '9820033333', 'vikram@ctms.demo',  'ACTIVE'),
-      ('Anil Deshmukh',  'MAINTENANCE_WORKER', '9820044444', 'anil@ctms.demo',    'ACTIVE'),
-      ('Meena Joshi',    'SUPERVISOR',         '9820055555', 'meena@ctms.demo',   'ACTIVE'),
-      ('Farhan Qureshi', 'LABOURER',           '9820066666', 'farhan@ctms.demo',  'INACTIVE')
-    RETURNING id, name`;
-  const E = Object.fromEntries(employees.map((r) => [r.name, r.id]));
-
-  console.log("Inserting machines...");
-  const machines = await sql`
-    INSERT INTO machines (name, type, model, status, purchase_date, project_id) VALUES
-      ('Excavator EX-01',  'Excavator',    'CAT 320',       'ALLOCATED',   '2024-03-10', ${P["Riverside Apartments"]}),
-      ('Excavator EX-02',  'Excavator',    'Komatsu PC210',  'ALLOCATED',   '2023-11-22', ${P["Metro Depot Phase 2"]}),
-      ('Tower Crane TC-01','Crane',        'Potain MDT 219', 'ALLOCATED',   '2022-07-01', ${P["Riverside Apartments"]}),
-      ('Concrete Mixer M-01','Mixer',      'Schwing SP 305', 'AVAILABLE',   '2025-01-15', NULL),
-      ('Backhoe Loader B-01','Loader',     'JCB 3DX',        'MAINTENANCE', '2021-09-30', NULL),
-      ('Road Roller R-01', 'Compactor',    'Bomag BW 211',   'AVAILABLE',   '2024-06-18', NULL)
-    RETURNING id, name`;
-  const M = Object.fromEntries(machines.map((r) => [r.name, r.id]));
-
-  console.log("Inserting maintenance records...");
-  await sql`
-    INSERT INTO maintenance_records (machine_id, description, status, assigned_employee_id, raised_by, cost) VALUES
-      (${M["Backhoe Loader B-01"]}, 'Hydraulic hose burst, needs replacement', 'IN_PROGRESS', ${E["Vikram Singh"]}, ${ownerId}, 18500),
-      (${M["Excavator EX-02"]},     'Scheduled 500-hour service',              'PENDING',     ${E["Anil Deshmukh"]}, ${ownerId}, 12000),
-      (${M["Tower Crane TC-01"]},   'Annual safety inspection',                'COMPLETED',   ${E["Vikram Singh"]}, ${ownerId}, 30000),
-      (${M["Concrete Mixer M-01"]}, 'Drum bearing noise reported by operator', 'PENDING',     NULL,                 ${ownerId}, 0)`;
-
-  console.log("Inserting payments...");
-  await sql`
-    INSERT INTO payments (project_id, description, amount, status, payment_date) VALUES
-      (${P["Riverside Apartments"]},  'Steel supplier invoice #RS-204',     3200000, 'PAID',    '2026-05-12'),
-      (${P["Riverside Apartments"]},  'Cement bulk order Q2',               1450000, 'PAID',    '2026-06-02'),
-      (${P["Riverside Apartments"]},  'Electrical subcontractor milestone', 2100000, 'PENDING', NULL),
-      (${P["Metro Depot Phase 2"]},   'Earthworks contractor advance',      5000000, 'PAID',    '2026-04-28'),
-      (${P["Metro Depot Phase 2"]},   'Rebar shipment #MD-77',              2750000, 'PENDING', NULL),
-      (${P["City Mall Retrofit"]},    'Facade glass deposit',                900000, 'PENDING', NULL),
-      (${P["Airport Link Road"]},     'Final retention release',            3050000, 'PAID',    '2026-05-20')`;
-
-  console.log("Inserting tools...");
-  const tools = await sql`
-    INSERT INTO tools (name, category, unit, total_quantity, available_quantity, location) VALUES
-      ('Cordless Drill',        'Power tools',  'unit', 24, 9,  'Central Warehouse'),
-      ('Angle Grinder',         'Power tools',  'unit', 16, 3,  'Central Warehouse'),
-      ('Scaffold Frame',        'Access',       'set',  120, 48, 'Central Warehouse'),
-      ('Safety Harness',        'PPE',          'unit', 60, 55, 'Central Warehouse'),
-      ('Jackhammer',            'Demolition',   'unit', 8,  1,  'Central Warehouse'),
-      ('Laser Level',           'Survey',       'unit', 6,  6,  'Survey Room'),
-      ('Wheelbarrow',           'General',      'unit', 40, 22, 'Central Warehouse')
-    RETURNING id, name`;
-  const T = Object.fromEntries(tools.map((r) => [r.name, r.id]));
-
-  console.log("Inserting tool movements...");
-  await sql`
-    INSERT INTO tool_transactions (tool_id, kind, quantity, project_id, employee_id, note, created_by) VALUES
-      (${T["Cordless Drill"]}, 'ISSUE', 15, ${P["Riverside Apartments"]}, ${E["Meena Joshi"]}, 'Fit-out crew', ${ownerId}),
-      (${T["Angle Grinder"]},  'ISSUE', 13, ${P["Metro Depot Phase 2"]},  ${E["Suresh Kadam"]}, 'Steel cutting', ${ownerId}),
-      (${T["Scaffold Frame"]}, 'ISSUE', 72, ${P["Riverside Apartments"]}, ${E["Meena Joshi"]}, 'Block C elevation', ${ownerId}),
-      (${T["Jackhammer"]},     'ISSUE', 7,  ${P["City Mall Retrofit"]},   ${E["Ramesh Patil"]}, 'Slab breaking', ${ownerId}),
-      (${T["Wheelbarrow"]},    'ISSUE', 18, ${P["Metro Depot Phase 2"]},  NULL, 'General site use', ${ownerId}),
-      (${T["Cordless Drill"]}, 'RETURN', 1, NULL, ${E["Meena Joshi"]}, 'One returned faulty', ${ownerId})`;
-
-  console.log("Inserting deliveries...");
-  await sql`
-    INSERT INTO deliveries (reference, direction, project_id, carrier, item_summary, status, scheduled_date, delivered_date) VALUES
-      ('DLV-1001', 'INBOUND',  ${P["Riverside Apartments"]}, 'BlueDart Freight', '400 bags cement, 2t rebar',        'DELIVERED',  '2026-06-01', '2026-06-02'),
-      ('DLV-1002', 'INBOUND',  ${P["Metro Depot Phase 2"]},  'VRL Logistics',    'Precast beams x12',                'IN_TRANSIT', '2026-07-18', NULL),
-      ('DLV-1003', 'OUTBOUND', ${P["City Mall Retrofit"]},   'Own fleet',        'Return unused scaffold to depot',  'SCHEDULED',  '2026-07-25', NULL),
-      ('DLV-1004', 'INBOUND',  ${P["Hillcrest Villas"]},     'Safexpress',       'Survey equipment + site office',   'SCHEDULED',  '2026-08-05', NULL),
-      ('DLV-1005', 'INBOUND',  ${P["Riverside Apartments"]}, 'TCI Freight',      'Electrical conduit + fittings',    'CANCELLED',  '2026-06-20', NULL)`;
-
-  console.log("\nDone. Sign in with owner@ctms.demo / demo1234 (or engineer@ctms.demo).");
+  console.log("\nDone. Sign in with rajendra@plinthops.in / demo1234 (Owner) or priya@plinthops.in / demo1234 (Site Engineer).");
   await sql.end();
 }
-
-main().catch(async (e) => {
-  console.error(e);
-  await sql.end();
-  process.exit(1);
-});
+main().catch(async (e) => { console.error(e); await sql.end(); process.exit(1); });

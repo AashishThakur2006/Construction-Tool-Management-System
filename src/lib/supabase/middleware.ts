@@ -1,12 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/register"];
-
 /**
- * Refreshes the Supabase auth session on every request and gates access:
- * unauthenticated users are sent to /login, authenticated users are kept
- * out of the auth pages.
+ * Keeps the Supabase auth cookie fresh on navigation. Plinth handles its own
+ * routing and shows its own sign-in screen, and the API routes return 401 when
+ * unauthenticated, so there are no redirects here.
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -32,19 +30,6 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
-
-  if (!user && !isPublic) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-  if (user && isPublic) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
+  await supabase.auth.getUser();
   return response;
 }
