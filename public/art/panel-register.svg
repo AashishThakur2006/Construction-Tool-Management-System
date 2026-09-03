@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 460" fill="none" font-family="'Public Sans',system-ui,sans-serif">
+  <defs><linearGradient id="pr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1e17"/><stop offset="1" stop-color="#111310"/></linearGradient></defs>
+  <rect x="0.5" y="0.5" width="639" height="459" rx="14" fill="url(#pr)" stroke="#33372b"/>
+  <text x="28" y="44" font-size="15" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">Assets</text>
+  <text x="28" y="62" font-size="10" fill="#9b9d8b">64 on the register · ₹18.2 Cr of plant</text>
+  <rect x="470" y="30" width="142" height="26" rx="8" fill="#2c4536"/><text x="541" y="47" font-size="10.5" fill="#dff0e6" text-anchor="middle">+ Register asset</text>
+  <!-- filter pills -->
+  <g><rect x="28" y="80" width="90" height="24" rx="12" fill="#191c16" stroke="#33372b"/><text x="42" y="96" font-size="10" fill="#9b9d8b">Category</text>
+     <rect x="128" y="80" width="80" height="24" rx="12" fill="#191c16" stroke="#33372b"/><text x="142" y="96" font-size="10" fill="#9b9d8b">Status</text>
+     <rect x="218" y="80" width="84" height="24" rx="12" fill="#191c16" stroke="#33372b"/><text x="232" y="96" font-size="10" fill="#9b9d8b">Cond.</text></g>
+  <!-- table head -->
+  <path d="M28 122 H612" stroke="#262a20"/>
+  <g font-size="9" fill="#6f7263" font-family="'Spline Sans Mono',monospace" letter-spacing="0.6"><text x="28" y="140">ASSET</text><text x="150" y="140">MODEL</text><text x="330" y="140">STATUS</text><text x="470" y="140">COND</text><text x="560" y="140">HOURS</text></g>
+  <g font-size="11">
+    <g><text x="28" y="170" fill="#c9cbbb" font-family="'Spline Sans Mono',monospace">AST-0112</text><text x="150" y="170" fill="#eef0e6">CAT 320 Excavator</text>
+       <rect x="330" y="160" width="72" height="15" rx="7" fill="#2c4536"/><text x="366" y="171" font-size="9" fill="#8fd3ab" text-anchor="middle">Allocated</text>
+       <circle cx="478" cy="167" r="8" fill="#2c4536"/><text x="478" y="171" font-size="9" fill="#8fd3ab" text-anchor="middle">A</text><text x="560" y="170" fill="#9b9d8b" font-family="'Spline Sans Mono',monospace">4,120</text></g>
+    <path d="M28 184 H612" stroke="#1f231b"/>
+    <g><text x="28" y="210" fill="#c9cbbb" font-family="'Spline Sans Mono',monospace">AST-0118</text><text x="150" y="210" fill="#eef0e6">Genie Z-45 Boom Lift</text>
+       <rect x="330" y="200" width="60" height="15" rx="7" fill="#242a1e"/><text x="360" y="211" font-size="9" fill="#c9cbbb" text-anchor="middle">In yard</text>
+       <circle cx="478" cy="207" r="8" fill="#3a3520"/><text x="478" y="211" font-size="9" fill="#d8c98a" text-anchor="middle">B</text><text x="560" y="210" fill="#9b9d8b" font-family="'Spline Sans Mono',monospace">1,905</text></g>
+    <path d="M28 224 H612" stroke="#1f231b"/>
+    <g><text x="28" y="250" fill="#c9cbbb" font-family="'Spline Sans Mono',monospace">AST-0105</text><text x="150" y="250" fill="#eef0e6">Hilti TE 3000 Breaker</text>
+       <rect x="330" y="240" width="86" height="15" rx="7" fill="#3a2a1e"/><text x="373" y="251" font-size="9" fill="#e0a07f" text-anchor="middle">In workshop</text>
+       <circle cx="478" cy="247" r="8" fill="#3a2a1e"/><text x="478" y="251" font-size="9" fill="#e0a07f" text-anchor="middle">C</text><text x="560" y="250" fill="#9b9d8b" font-family="'Spline Sans Mono',monospace">5,240</text></g>
+    <path d="M28 264 H612" stroke="#1f231b"/>
+    <g><text x="28" y="290" fill="#c9cbbb" font-family="'Spline Sans Mono',monospace">AST-0131</text><text x="150" y="290" fill="#eef0e6">Leica TS16 Total Station</text>
+       <rect x="330" y="280" width="72" height="15" rx="7" fill="#2c4536"/><text x="366" y="291" font-size="9" fill="#8fd3ab" text-anchor="middle">Allocated</text>
+       <circle cx="478" cy="287" r="8" fill="#2c4536"/><text x="478" y="291" font-size="9" fill="#8fd3ab" text-anchor="middle">A</text><text x="560" y="290" fill="#9b9d8b" font-family="'Spline Sans Mono',monospace">612</text></g>
+    <path d="M28 304 H612" stroke="#1f231b"/>
+    <g><text x="28" y="330" fill="#c9cbbb" font-family="'Spline Sans Mono',monospace">AST-0140</text><text x="150" y="330" fill="#eef0e6">Wacker BS60 Rammer</text>
+       <rect x="330" y="320" width="60" height="15" rx="7" fill="#242a1e"/><text x="360" y="331" font-size="9" fill="#c9cbbb" text-anchor="middle">In yard</text>
+       <circle cx="478" cy="327" r="8" fill="#3a3520"/><text x="478" y="331" font-size="9" fill="#d8c98a" text-anchor="middle">B</text><text x="560" y="330" fill="#9b9d8b" font-family="'Spline Sans Mono',monospace">2,301</text></g>
+  </g>
+  <!-- history rail -->
+  <path d="M28 360 H612" stroke="#262a20"/>
+  <text x="28" y="386" font-size="9.5" fill="#6f7263" font-family="'Spline Sans Mono',monospace">AST-0112 HISTORY</text>
+  <g font-size="10" fill="#9b9d8b">
+    <circle cx="34" cy="406" r="3" fill="#6cc08f"/><text x="48" y="410">02 Feb 2023 — Registered · ₹1,17,36,000</text>
+    <circle cx="34" cy="426" r="3" fill="#6cc08f"/><text x="48" y="430">14 Aug 2024 — Allocated to JOB-24-011</text>
+  </g>
+</svg>

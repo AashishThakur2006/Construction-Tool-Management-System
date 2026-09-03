@@ -1,68 +1,102 @@
-/* PLINTH marketing site — scroll reveal, parallax orbs, progress bar.
-   Landing pages only. Bails out under prefers-reduced-motion. */
+/* PLINTH marketing site — scroll reveal, sticky-header shadow, parallax orbs,
+   stat count-up. Landing pages only. Bails out under prefers-reduced-motion. */
 (function () {
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---- scroll progress bar ---- */
+  /* scroll progress bar */
   var prog = document.createElement("div");
   prog.className = "scroll-prog";
   document.body.appendChild(prog);
 
+  var header = document.querySelector(".site-header");
+  var orbs = [];
+  document.querySelectorAll(".orb").forEach(function (el, i) {
+    orbs.push({ el: el, rate: [-0.05, 0.08, -0.035][i % 3] });
+  });
+
   function onScroll() {
     var h = document.documentElement;
     var max = h.scrollHeight - h.clientHeight;
-    prog.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
-
+    var y = h.scrollTop;
+    prog.style.width = (max > 0 ? (y / max) * 100 : 0) + "%";
+    if (header) header.classList.toggle("is-stuck", y > 8);
     if (!reduce) {
-      var y = h.scrollTop;
-      orbs.forEach(function (o, i) {
-        o.el.style.transform = "translate3d(0," + (y * o.rate).toFixed(1) + "px,0)";
-      });
+      for (var i = 0; i < orbs.length; i++) {
+        orbs[i].el.style.transform = "translate3d(0," + (y * orbs[i].rate).toFixed(1) + "px,0)";
+      }
     }
   }
-
-  /* ---- parallax orbs ---- */
-  var orbs = [];
-  document.querySelectorAll(".orb").forEach(function (el, i) {
-    orbs.push({ el: el, rate: [-0.06, 0.09, -0.04][i % 3] });
-  });
-
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
   if (reduce) return;
 
-  /* ---- reveal on scroll ---- */
-  var SEL = ".section > .wrap > *, .feature-row, .card, .plan, .person, .stats, .cta-band, .faq details, .hero__art";
-  var targets = [];
-  document.querySelectorAll(SEL).forEach(function (el) {
-    // don't double-wrap nested matches
-    if (el.closest(".reveal") && el.classList.contains("reveal") === false && el.parentElement.classList.contains("reveal")) return;
-    el.classList.add("reveal");
-    targets.push(el);
+  /* reveal on scroll — stagger siblings within a container */
+  var groups = {};
+  document.querySelectorAll(".reveal").forEach(function (el) {
+    var parent = el.parentElement;
+    (groups[parentKey(parent)] = groups[parentKey(parent)] || []).push(el);
   });
-
-  // stagger siblings inside a grid
-  document.querySelectorAll(".grid, .price-grid, .stats").forEach(function (grid) {
-    Array.prototype.forEach.call(grid.children, function (child, i) {
-      if (child.classList.contains("reveal")) child.classList.add("d" + Math.min(i + 1, 4));
+  function parentKey(p) {
+    if (!p.__k) p.__k = "g" + Math.random().toString(36).slice(2);
+    return p.__k;
+  }
+  Object.keys(groups).forEach(function (k) {
+    groups[k].forEach(function (el, i) {
+      if (!/\bd[1-4]\b/.test(el.className) && i > 0 && i < 5) {
+        el.classList.add("d" + Math.min(i, 4));
+      }
     });
   });
+
+  // Last-resort: if anything is still hidden after 4s (observer never fired,
+  // e.g. tab was backgrounded), just show it.
+  setTimeout(function () {
+    document.querySelectorAll(".reveal:not(.in)").forEach(function (el) {
+      if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("in");
+    });
+  }, 4000);
 
   var io = new IntersectionObserver(
     function (entries) {
       entries.forEach(function (e) {
-        if (e.isIntersecting) {
+        // reveal when intersecting, or if we've already scrolled past it
+        if (e.isIntersecting || e.boundingClientRect.top < window.innerHeight) {
           e.target.classList.add("in");
           io.unobserve(e.target);
         }
       });
     },
-    { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+    { threshold: 0.1, rootMargin: "0px 0px -5% 0px" }
   );
-  targets.forEach(function (t) { io.observe(t); });
+  var pending = [];
+  document.querySelectorAll(".reveal").forEach(function (el) {
+    // anything already at/above the fold on load: show immediately
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) el.classList.add("in");
+    else { io.observe(el); pending.push(el); }
+  });
 
-  /* ---- number count-up in the stat band ---- */
+  // Safety sweep on scroll — guarantees nothing stays stuck if the observer
+  // misses a fast scroll past a section.
+  var ticking = false;
+  window.addEventListener("scroll", function () {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      ticking = false;
+      var vh = window.innerHeight;
+      pending = pending.filter(function (el) {
+        if (el.getBoundingClientRect().top < vh * 0.95) {
+          el.classList.add("in");
+          io.unobserve(el);
+          return false;
+        }
+        return true;
+      });
+    });
+  }, { passive: true });
+
+  /* number count-up in the stat band */
   var stats = document.querySelector(".stats");
   if (stats) {
     var run = false;
@@ -72,9 +106,9 @@
         run = true;
         sio.disconnect();
         stats.querySelectorAll(".n").forEach(function (nEl) {
-          var target = parseInt(nEl.textContent, 10);
+          var target = parseInt(nEl.textContent.replace(/[^\d]/g, ""), 10);
           if (isNaN(target)) return;
-          var start = performance.now(), dur = 900;
+          var start = performance.now(), dur = 950;
           (function tick(now) {
             var p = Math.min(1, (now - start) / dur);
             var eased = 1 - Math.pow(1 - p, 3);

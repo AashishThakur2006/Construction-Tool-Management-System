@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 460" fill="none" font-family="'Public Sans',system-ui,sans-serif">
+  <defs><linearGradient id="ps" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1e17"/><stop offset="1" stop-color="#111310"/></linearGradient>
+    <linearGradient id="psb" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#6cc08f" stop-opacity="0.25"/><stop offset="1" stop-color="#6cc08f"/></linearGradient></defs>
+  <rect x="0.5" y="0.5" width="639" height="459" rx="14" fill="url(#ps)" stroke="#33372b"/>
+  <text x="28" y="44" font-size="15" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">Payments</text>
+  <text x="28" y="62" font-size="10" fill="#9b9d8b">The ledger for JOB-24-011 — committed spend ₹58.4 L</text>
+  <!-- mini stat row -->
+  <g>
+    <rect x="28" y="78" width="180" height="58" rx="10" fill="#171a14" stroke="#33372b"/>
+    <text x="44" y="100" font-size="9" fill="#9b9d8b">OUTSTANDING</text><text x="44" y="122" font-size="16" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">₹41.0 L</text>
+    <rect x="220" y="78" width="180" height="58" rx="10" fill="#171a14" stroke="#33372b"/>
+    <text x="236" y="100" font-size="9" fill="#9b9d8b">OVERDUE</text><text x="236" y="122" font-size="16" font-weight="700" fill="#e0784f" font-family="'Bricolage Grotesque',sans-serif">₹24.1 L</text>
+    <rect x="412" y="78" width="200" height="58" rx="10" fill="#171a14" stroke="#33372b"/>
+    <text x="428" y="100" font-size="9" fill="#9b9d8b">PAID THIS QUARTER</text><text x="428" y="122" font-size="16" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">₹34.3 L</text>
+  </g>
+  <!-- ledger rows -->
+  <path d="M28 158 H612" stroke="#262a20"/>
+  <g font-size="9" fill="#6f7263" font-family="'Spline Sans Mono',monospace"><text x="28" y="176">INVOICE</text><text x="150" y="176">PAYEE</text><text x="400" y="176">DUE</text><text x="612" y="176" text-anchor="end">AMOUNT</text></g>
+  <g font-size="11">
+    <text x="28" y="204" fill="#c9cbbb" font-family="'Spline Sans Mono',monospace">INV-26407</text><text x="150" y="204" fill="#eef0e6">Gmmco Ltd — CAT parts</text><text x="400" y="204" fill="#9b9d8b">paid</text>
+    <rect x="470" y="194" width="44" height="15" rx="7" fill="#2c4536"/><text x="492" y="205" font-size="9" fill="#8fd3ab" text-anchor="middle">Paid</text>
+    <text x="612" y="204" fill="#c9cbbb" text-anchor="end" font-family="'Spline Sans Mono',monospace">₹10,40,000</text>
+    <path d="M28 218 H612" stroke="#1f231b"/>
+    <text x="28" y="246" fill="#c9cbbb" font-family="'Spline Sans Mono',monospace">INV-26414</text><text x="150" y="246" fill="#eef0e6">Sanghvi Movers — cross-hire</text><text x="400" y="246" fill="#e0784f">34 d ago</text>
+    <rect x="466" y="236" width="56" height="15" rx="7" fill="#3a2018"/><text x="494" y="247" font-size="9" fill="#e0784f" text-anchor="middle">Overdue</text>
+    <text x="612" y="246" fill="#e0784f" text-anchor="end" font-family="'Spline Sans Mono',monospace">₹8,20,000</text>
+    <path d="M28 260 H612" stroke="#1f231b"/>
+    <text x="28" y="288" fill="#c9cbbb" font-family="'Spline Sans Mono',monospace">INV-26428</text><text x="150" y="288" fill="#eef0e6">Deccan Sand &amp; Aggregates</text><text x="400" y="288" fill="#9b9d8b">in 12 d</text>
+    <rect x="468" y="278" width="52" height="15" rx="7" fill="#242a1e"/><text x="494" y="289" font-size="9" fill="#c9cbbb" text-anchor="middle">Pending</text>
+    <text x="612" y="288" fill="#c9cbbb" text-anchor="end" font-family="'Spline Sans Mono',monospace">₹13,60,000</text>
+    <path d="M28 302 H612" stroke="#1f231b"/>
+    <text x="28" y="330" fill="#c9cbbb" font-family="'Spline Sans Mono',monospace">INV-26442</text><text x="150" y="330" fill="#eef0e6">Pune Crane Services</text><text x="400" y="330" fill="#d8c98a">disputed</text>
+    <rect x="466" y="320" width="56" height="15" rx="7" fill="#3a3520"/><text x="494" y="331" font-size="9" fill="#d8c98a" text-anchor="middle">Disputed</text>
+    <text x="612" y="330" fill="#c9cbbb" text-anchor="end" font-family="'Spline Sans Mono',monospace">₹6,30,000</text>
+  </g>
+  <path d="M28 356 H612" stroke="#262a20"/>
+  <!-- sparkline -->
+  <g><rect x="28" y="376" width="18" height="60" rx="3" fill="url(#psb)"/><rect x="54" y="396" width="18" height="40" rx="3" fill="url(#psb)"/><rect x="80" y="386" width="18" height="50" rx="3" fill="url(#psb)"/><rect x="106" y="406" width="18" height="30" rx="3" fill="url(#psb)"/><rect x="132" y="376" width="18" height="60" rx="3" fill="url(#psb)"/><rect x="158" y="416" width="18" height="20" rx="3" fill="url(#psb)"/></g>
+  <text x="200" y="410" font-size="9.5" fill="#6f7263" font-family="'Spline Sans Mono',monospace">MONTHLY SETTLEMENT · LAST 6 MONTHS</text>
+</svg>

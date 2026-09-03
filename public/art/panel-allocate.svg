@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 460" fill="none" font-family="'Public Sans',system-ui,sans-serif">
+  <defs><linearGradient id="pa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1e17"/><stop offset="1" stop-color="#111310"/></linearGradient>
+    <radialGradient id="pag" cx="50%" cy="30%" r="70%"><stop offset="0" stop-color="#6cc08f" stop-opacity="0.14"/><stop offset="1" stop-color="#6cc08f" stop-opacity="0"/></radialGradient></defs>
+  <rect x="0.5" y="0.5" width="639" height="459" rx="14" fill="url(#pa)" stroke="#33372b"/>
+  <rect x="0.5" y="0.5" width="639" height="459" rx="14" fill="url(#pag)"/>
+  <text x="28" y="44" font-size="15" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">Allocate assets</text>
+  <!-- stepper -->
+  <g font-size="10.5">
+    <circle cx="40" cy="78" r="12" fill="#242a1e"/><text x="40" y="82" fill="#8fd3ab" text-anchor="middle" font-family="'Spline Sans Mono',monospace">✓</text><text x="60" y="82" fill="#9b9d8b">Choose the job</text>
+    <circle cx="230" cy="78" r="12" fill="#6cc08f"/><text x="230" y="82" fill="#0b1710" text-anchor="middle" font-family="'Spline Sans Mono',monospace">2</text><text x="250" y="82" fill="#eef0e6">Pick from the yard</text>
+    <circle cx="430" cy="78" r="12" fill="#191c16" stroke="#33372b"/><text x="430" y="82" fill="#6f7263" text-anchor="middle" font-family="'Spline Sans Mono',monospace">3</text><text x="450" y="82" fill="#6f7263">Confirm</text>
+  </g>
+  <path d="M52 78 H218 M242 78 H418" stroke="#2a2f24"/>
+  <text x="28" y="118" font-size="10.5" fill="#9b9d8b">Allocating to <tspan fill="#eef0e6" font-weight="600">JOB-24-011 — Mundhwa Riverside Depot</tspan></text>
+  <!-- yard list -->
+  <g>
+    <rect x="28" y="134" width="584" height="46" rx="10" fill="#12241a" stroke="#3f6b4f"/>
+    <rect x="44" y="150" width="14" height="14" rx="3" fill="#6cc08f"/><path d="M47 157 l3 3 l5 -6" stroke="#0b1710" stroke-width="1.6" fill="none"/>
+    <text x="72" y="153" font-size="11.5" fill="#eef0e6" font-weight="600">AST-0118 · Genie Z-45 Boom Lift</text>
+    <text x="72" y="169" font-size="9.5" fill="#9b9d8b">Lifting · 1,905 h · serial GEN-41822</text>
+    <circle cx="590" cy="157" r="9" fill="#3a3520"/><text x="590" y="161" font-size="9" fill="#d8c98a" text-anchor="middle">B</text>
+
+    <rect x="28" y="188" width="584" height="46" rx="10" fill="#12241a" stroke="#3f6b4f"/>
+    <rect x="44" y="204" width="14" height="14" rx="3" fill="#6cc08f"/><path d="M47 211 l3 3 l5 -6" stroke="#0b1710" stroke-width="1.6" fill="none"/>
+    <text x="72" y="207" font-size="11.5" fill="#eef0e6" font-weight="600">AST-0140 · Wacker BS60-4 Rammer</text>
+    <text x="72" y="223" font-size="9.5" fill="#9b9d8b">Concrete · 2,301 h · serial WAC-41109</text>
+    <circle cx="590" cy="211" r="9" fill="#3a3520"/><text x="590" y="215" font-size="9" fill="#d8c98a" text-anchor="middle">B</text>
+
+    <rect x="28" y="242" width="584" height="46" rx="10" fill="#171a14" stroke="#33372b"/>
+    <rect x="44" y="258" width="14" height="14" rx="3" fill="#191c16" stroke="#4b4f42"/>
+    <text x="72" y="261" font-size="11.5" fill="#c9cbbb">AST-0146 · Honda EU70is Generator</text>
+    <text x="72" y="277" font-size="9.5" fill="#6f7263">Power &amp; Air · 980 h · serial HON-40551</text>
+    <circle cx="590" cy="265" r="9" fill="#2c4536"/><text x="590" y="269" font-size="9" fill="#8fd3ab" text-anchor="middle">A</text>
+
+    <rect x="28" y="296" width="584" height="46" rx="10" fill="#171a14" stroke="#33372b"/>
+    <rect x="44" y="312" width="14" height="14" rx="3" fill="#191c16" stroke="#4b4f42"/>
+    <text x="72" y="315" font-size="11.5" fill="#c9cbbb">AST-0151 · SMC TL90 Lighting Tower</text>
+    <text x="72" y="331" font-size="9.5" fill="#6f7263">Site Support · 3,410 h · serial SMC-42030</text>
+    <circle cx="590" cy="319" r="9" fill="#3a2a1e"/><text x="590" y="323" font-size="9" fill="#e0a07f" text-anchor="middle">C</text>
+  </g>
+  <path d="M28 366 H612" stroke="#262a20"/>
+  <text x="28" y="392" font-size="10.5" fill="#9b9d8b">2 picked · ₹41,20,000 of plant</text>
+  <rect x="452" y="376" width="160" height="30" rx="15" fill="#6cc08f"/><text x="532" y="395" font-size="11" fill="#0b1710" text-anchor="middle" font-weight="600">Review 2  →</text>
+</svg>

@@ -1,37 +1,26 @@
 import type { Metadata } from "next";
+import Icon from "../_components/Icon";
 
 export const metadata: Metadata = { title: "Pricing" };
 
 const PLANS = [
   {
-    name: "Yard",
-    price: "₹0",
-    unit: "/ forever",
+    name: "Yard", price: "₹0", unit: "forever",
     blurb: "The full product on the seeded demo register.",
     features: ["1 Owner + 1 Site Engineer", "Seeded demo data", "Every module unlocked", "Community support"],
-    cta: "Start free",
-    href: "/app?tab=register",
-    featured: false,
+    cta: "Start free", href: "/app?tab=register", featured: false,
   },
   {
-    name: "Site",
-    price: "₹2,400",
-    unit: "/ month",
+    name: "Site", price: "₹2,400", unit: "/ month",
     blurb: "For a contractor running a real fleet.",
-    features: ["Up to 15 users", "Your own register", "Role scoping for every engineer", "Asset history export", "Email support"],
-    cta: "Start 30-day trial",
-    href: "/app?tab=register",
-    featured: true,
+    features: ["Up to 15 users", "Your own register", "Role scoping per engineer", "Asset history export", "Email support"],
+    cta: "Start 30-day trial", href: "/app?tab=register", featured: true,
   },
   {
-    name: "Fleet",
-    price: "Let's talk",
-    unit: "",
+    name: "Fleet", price: "Let's talk", unit: "",
     blurb: "Multiple yards, many engineers, custom needs.",
     features: ["Unlimited users", "Multi-yard registers", "SSO / OAuth", "Priority support", "Onboarding help"],
-    cta: "Contact us",
-    href: "/app",
-    featured: false,
+    cta: "Contact us", href: "/app", featured: false,
   },
 ];
 
@@ -46,30 +35,31 @@ const FAQ = [
 export default function PricingPage() {
   return (
     <>
-      <section className="section">
-        <div className="wrap">
-          <span className="eyebrow">pricing</span>
-          <h1 style={{ maxWidth: "14ch" }}>Priced per yard, not per asset.</h1>
-          <p className="lede" style={{ marginTop: 22 }}>
+      <section className="section hero">
+        <div className="wrap hero__inner">
+          <span className="eyebrow reveal">pricing</span>
+          <h1 className="reveal d1" style={{ maxWidth: "14ch" }}>Priced per yard, not per asset.</h1>
+          <p className="lede reveal d2" style={{ marginTop: 22 }}>
             Start on the demo for free. Move to your own register when you&apos;re
             ready. No charge for the plant you already own.
           </p>
         </div>
       </section>
 
-      <section className="section--tight">
+      <section className="section--flush">
         <div className="wrap">
           <div className="price-grid">
             {PLANS.map((p) => (
-              <div className={`plan${p.featured ? " plan--featured" : ""}`} key={p.name}>
+              <div className={`plan reveal${p.featured ? " plan--featured" : ""}`} key={p.name}>
+                {p.featured && <span className="plan__badge">Most popular</span>}
                 <div className="plan__name">{p.name}</div>
                 <div className="plan__price">
                   {p.price} {p.unit && <span>{p.unit}</span>}
                 </div>
-                <p className="muted" style={{ margin: 0, fontSize: 14.5 }}>{p.blurb}</p>
+                <p className="muted" style={{ margin: 0, fontSize: 14 }}>{p.blurb}</p>
                 <ul>
                   {p.features.map((f) => (
-                    <li key={f}>{f}</li>
+                    <li key={f}><Icon name="check" />{f}</li>
                   ))}
                 </ul>
                 <a className={`btn ${p.featured ? "btn--primary" : "btn--ghost"}`} href={p.href}>
@@ -84,10 +74,10 @@ export default function PricingPage() {
       <section className="section">
         <div className="wrap">
           <div className="section__head">
-            <span className="eyebrow">questions</span>
-            <h2>Before you sign up</h2>
+            <span className="eyebrow reveal">questions</span>
+            <h2 className="reveal d1">Before you sign up</h2>
           </div>
-          <div className="faq">
+          <div className="faq reveal">
             {FAQ.map((f) => (
               <details key={f.q}>
                 <summary>{f.q}</summary>
@@ -98,13 +88,13 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="section--tight">
+      <section className="section">
         <div className="wrap">
-          <div className="cta-band">
+          <div className="cta-band reveal">
             <h2>Try it on the demo first.</h2>
             <div className="hero__cta">
-              <a className="btn btn--primary" href="/app?tab=register">Start free</a>
-              <a className="btn btn--ghost" href="/app">Sign in</a>
+              <a className="btn btn--primary btn--lg" href="/app?tab=register">Start free</a>
+              <a className="btn btn--ghost btn--lg" href="/app">Sign in</a>
             </div>
           </div>
         </div>
