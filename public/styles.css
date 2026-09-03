@@ -581,6 +581,7 @@ div.rowlist-item .rowlist-main { min-width: 0; }
   border-bottom: 1px solid var(--line);
   font-size: 12.5px;
 }
+.offline-bar[hidden] { display: none; }
 .offline-bar svg { width: 16px; height: 16px; flex-shrink: 0; }
 .sidebar-scrim { position: fixed; inset: 0; z-index: 55; background: rgba(35, 39, 32, 0.35); }
 @media (min-width: 961px) { .sidebar-scrim { display: none; } }

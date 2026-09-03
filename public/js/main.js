@@ -100,7 +100,7 @@ function buildShell() {
       viewEl));
   root.replaceChildren(shell);
   refreshNav();
-  checkReachable(); // now that offlineBar exists, correct its initial state
+  syncOffline(); // reflect current connectivity now that the bar exists
 }
 
 function initials(name) { return name.split(" ").map((w) => w[0]).slice(0, 2).join(""); }
@@ -180,8 +180,13 @@ function render() {
 }
 
 /* ---------------- global wiring ---------------- */
+function syncOffline() { if (offlineBar) offlineBar.hidden = store.online; }
+
 window.addEventListener("hashchange", render);
-store.onChange(() => { if (store.sessionRole() && viewEl) render(); });
+store.onChange(() => {
+  syncOffline();
+  if (store.sessionRole() && viewEl) render();
+});
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "/" && !modalIsOpen() && !e.target.closest("input, textarea, select") && searchInput) {
@@ -192,15 +197,10 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && sidebarEl?.classList.contains("open")) toggleSidebar(false);
 });
 
-window.addEventListener("online", () => { if (offlineBar) offlineBar.hidden = true; });
-window.addEventListener("offline", () => checkReachable());
-/* navigator.onLine misreports on some machines — confirm against our own origin */
-function checkReachable() {
-  fetch("/styles.css", { method: "HEAD", cache: "no-store" })
-    .then(() => { if (offlineBar) offlineBar.hidden = true; })
-    .catch(() => { if (offlineBar) offlineBar.hidden = false; });
-}
-checkReachable();
+/* The offline bar is driven purely by whether our own API requests complete
+   (store.online), never by navigator.onLine — which misreports on some
+   machines. When the browser signals it is back online, re-hydrate. */
+window.addEventListener("online", () => { store.boot().then(render).catch(() => {}); });
 
 /* ---------------- boot ---------------- */
 (async function boot() {

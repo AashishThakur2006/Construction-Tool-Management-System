@@ -35,11 +35,29 @@ export function persona() { return me; }
 export function sessionRole() { return me ? (me.role === "Owner" ? "owner" : "engineer") : null; }
 export function isOwner() { return me?.role === "Owner"; }
 
+/* Connectivity is judged by whether our own requests actually complete —
+   not by navigator.onLine, which misreports on some machines. */
+export let online = true;
+function setOnline(v) {
+  if (online === v) return;
+  online = v;
+  emit();
+}
+
 async function api(path, options) {
-  const res = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+  let res;
+  try {
+    res = await fetch(path, {
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
+  } catch {
+    setOnline(false);
+    const err = new Error("Network request failed");
+    err.offline = true;
+    throw err;
+  }
+  setOnline(true);
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     const err = new Error(data.error || `Request failed (${res.status})`);
