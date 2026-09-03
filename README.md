@@ -13,16 +13,20 @@ roster and a **payments** ledger — role-scoped for the Owner and Site Engineer
 ## How it fits together
 
 ```
-public/                     Plinth SPA (served static by Next)
-  index shell -> src/app/page.tsx
-  js/store.js               in-memory register, hydrated from /api/state;
-                            mutations apply locally then POST /api/mutate
-  js/views/*.js             one module per screen
 src/app/
-  page.tsx / layout.tsx     serve the SPA shell + fonts + styles.css
+  (site)/                   marketing site — /, /about, /people, /pricing
+    layout.tsx              dark chrome, orb field, /landing.js
+  app/page.tsx              serves the Plinth SPA shell + /styles.css
+  auth/callback/route.ts    OAuth code exchange
   api/state/route.ts        GET the whole register for the signed-in user
   api/mutate/route.ts       command bus: applies a batch of ops, role-gated
-  api/auth/*                login / logout / register (Supabase Auth) + dev bypass
+  api/auth/*                login / logout / register / oauth + dev bypass
+public/
+  js/store.js               in-memory register, hydrated from /api/state;
+                            mutations apply locally then POST /api/mutate
+  js/views/*.js             one Plinth screen per module
+  landing.css / landing.js  marketing-site styles + scroll motion (site only)
+  art/*.svg                 marketing imagery
 src/lib/
   db.ts                     postgres client (Supabase session pooler)
   auth.ts                   session + role, joined to public.profiles
@@ -30,6 +34,12 @@ src/lib/
 supabase/migrations/        database schema (0001 base, 0002 = Plinth's model)
 scripts/seed.mjs            demo register + two demo accounts
 ```
+
+The marketing site is at `/`; the app is at `/app`. "Sign in" / "Sign up" in
+the header link straight to it (`/app?tab=register` opens the Register tab).
+OAuth ("Continue with Google / GitHub") is wired through
+`/api/auth/oauth` → provider → `/auth/callback`; enable the provider in the
+Supabase dashboard and add `<origin>/auth/callback` to its redirect list.
 
 ### The register & mutations
 

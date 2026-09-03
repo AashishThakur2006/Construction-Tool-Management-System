@@ -447,6 +447,8 @@ html[data-motion="reduced"] .skel { animation: none; }
 .login-tabs { display: flex; gap: var(--s1); background: var(--bone); border-radius: var(--radius); padding: 3px; margin-bottom: var(--s5); }
 .login-tabs button { flex: 1; height: 32px; border-radius: 4px; font-size: 13px; font-weight: 500; color: var(--fieldgray); }
 .login-tabs button.active { background: var(--chalk); color: var(--ink); }
+.oauth-row { display: grid; gap: var(--s2); margin-bottom: var(--s4); }
+.oauth-row .btn { width: 100%; justify-content: center; }
 .login-brandmark { position: absolute; left: var(--s6); bottom: var(--s5); z-index: 2; color: rgba(244, 241, 234, 0.8); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; }
 
 /* ---- dashboard hero ------------------------------------------------------- */

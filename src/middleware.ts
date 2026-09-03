@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // everything except static assets, the Plinth bundle and images
-    "/((?!api|_next/static|_next/image|js/|styles.css|favicon.ico|guide.html|signature-demo.html).*)",
+    // skip the API, the OAuth callback, Next internals and static assets
+    "/((?!api|auth/callback|_next/static|_next/image|favicon.ico|js/|art/|styles.css|landing.css|landing.js|guide.html|signature-demo.html).*)",
   ],
 };

@@ -5,13 +5,37 @@ import { createField } from "../signature.js";
 
 let fieldHandle = null;
 
+const OAUTH = [
+  { provider: "google", label: "Continue with Google" },
+  { provider: "github", label: "Continue with GitHub" },
+];
+
 export function render(root, onEntered) {
   fieldHandle?.dispose();
   const canvas = h("canvas", { "aria-hidden": "true" });
-  let tab = "signin";
+
+  const params = new URLSearchParams(location.search);
+  let tab = params.get("tab") === "register" ? "register" : "signin";
+  const initialError = params.get("authError");
+  if (params.has("tab") || params.has("authError")) {
+    history.replaceState(null, "", location.pathname + location.hash);
+  }
 
   const panelBody = h("div");
   const msg = h("p.form-note", { role: "alert", style: "color:var(--danger,#b23);min-height:0" });
+  if (initialError) msg.textContent = initialError;
+
+  function oauthRow() {
+    return h("div.oauth-row", {},
+      OAUTH.map((o) => h("button.btn.btn-secondary", {
+        type: "button",
+        onclick: () => {
+          msg.textContent = `Redirecting to ${o.provider}…`;
+          location.href = `/api/auth/oauth?provider=${o.provider}&next=/app`;
+        },
+      }, o.label)),
+      h("p.form-note", { style: "text-align:center;margin:4px 0 0" }, "or use email"));
+  }
 
   function renderTabs() {
     return h("div.login-tabs", { role: "tablist", "aria-label": "Sign in or register" },
@@ -113,6 +137,7 @@ export function render(root, onEntered) {
   function paint() {
     panelBody.replaceChildren(
       renderTabs(),
+      oauthRow(),
       tab === "signin" ? signinForm() : registerForm(),
       msg);
   }
