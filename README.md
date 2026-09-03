@@ -18,13 +18,15 @@ src/app/
     layout.tsx              dark chrome, orb field, /landing.js
   app/page.tsx              serves the Plinth SPA shell + /styles.css
   auth/callback/route.ts    OAuth code exchange
-  api/state/route.ts        GET the whole register for the signed-in user
+  api/state/route.ts        GET the register, row-scoped by role
   api/mutate/route.ts       command bus: applies a batch of ops, role-gated
+  api/team/*                Owner-only: list / invite / edit / remove accounts
   api/auth/*                login / logout / register / oauth + dev bypass
 public/
   js/store.js               in-memory register, hydrated from /api/state;
                             mutations apply locally then POST /api/mutate
   js/views/*.js             one Plinth screen per module
+                            (reports + team are Owner-only)
   landing.css / landing.js  marketing-site styles + scroll motion (site only)
   art/*.svg                 marketing imagery
 src/lib/
@@ -43,10 +45,12 @@ Supabase dashboard and add `<origin>/auth/callback` to its redirect list.
 
 ### The register & mutations
 
-`GET /api/state` returns the full register (jobs, employees, assets,
-asset_history, maintenance, payments) in the camelCase shape the SPA expects.
-Row-level read scoping (a Site Engineer only sees their own jobs) is applied
-client-side in `store.js`.
+`GET /api/state` returns the register (jobs, employees, assets, asset_history,
+maintenance, payments) in the camelCase shape the SPA expects, **row-scoped on
+the server**: the Owner gets everything; a Site Engineer gets only their jobs,
+the assets on them (plus the yard and assets they've reported faults on), their
+fault reports, and the money and crew on their jobs. The linkage is
+`profiles.employee_id` → `jobs.engineer_id`; an Owner manages it from **Team**.
 
 Every change the SPA makes is expressed as a batch of ops and sent to
 `POST /api/mutate`, e.g.

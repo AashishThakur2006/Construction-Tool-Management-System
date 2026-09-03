@@ -1,9 +1,42 @@
 /* PLINTH — jobs list and job detail. */
 import * as store from "../store.js";
-import { h, fmt, table, sortRows, statusChip, stateBlock, skelTable, pageHead, confirmDialog, toast } from "../ui.js";
+import { h, fmt, table, sortRows, statusChip, stateBlock, skelTable, pageHead, confirmDialog, toast, openModal, field, submitRow } from "../ui.js";
 import { deniedBlock } from "./misc.js";
 
 const state = { q: "", status: "", engineer: "", sort: { key: "id", dir: -1 } };
+const JOB_STATUS = ["Mobilising", "Active", "On hold", "Completed"];
+
+export function jobModal(existing) {
+  const engineers = store.db.employees.filter((e) => e.role === "Site Engineer");
+  const f = {
+    name: field({ name: "name", label: "Job name", required: true, value: existing?.name || "" }),
+    client: field({ name: "client", label: "Client", value: existing?.client || "" }),
+    location: field({ name: "location", label: "Location", value: existing?.location || "" }),
+    status: field({ name: "status", label: "Status", type: "select", required: true, value: existing?.status || "Mobilising", options: JOB_STATUS.map((s) => ({ value: s, label: s })) }),
+    engineerId: field({ name: "eng", label: "Site Engineer", type: "select", value: existing?.engineerId || "", options: [{ value: "", label: "— Unassigned —" }].concat(engineers.map((e) => ({ value: e.id, label: e.name }))) }),
+    started: field({ name: "started", label: "Start date", type: "date", value: existing?.started || "" }),
+    ends: field({ name: "ends", label: "End date", type: "date", value: existing?.ends || "" }),
+  };
+  let dlg;
+  const submit = submitRow([f.name, f.status], existing ? "Save job" : "Create job", () => {
+    const data = {
+      name: f.name.get(), client: f.client.get(), location: f.location.get(),
+      status: f.status.get(), engineerId: f.engineerId.get() || null,
+      started: f.started.get() || null, ends: f.ends.get() || null,
+    };
+    if (existing) { store.updateJob(existing.id, data); toast(`${existing.id} updated.`); }
+    else { const { id } = store.addJob(data); toast(`${id} created.`); location.hash = `/jobs/${id}`; }
+    dlg.close();
+  });
+  dlg = openModal({
+    title: existing ? `Edit ${existing.id}` : "Create a job",
+    content: h("form", { onsubmit: (e) => e.preventDefault() },
+      f.name.root, f.client.root, f.location.root,
+      h("div.two-col-fields", {}, f.status.root, f.engineerId.root),
+      h("div.two-col-fields", {}, f.started.root, f.ends.root),
+      submit),
+  });
+}
 
 export function list(container) {
   container.append(skelTable(8));
@@ -12,8 +45,13 @@ export function list(container) {
 
 function paint(container) {
   const all = store.myJobs();
+  const addAction = store.isOwner()
+    ? h("button.btn.btn-primary", { type: "button", onclick: () => jobModal() }, "New job")
+    : null;
   if (all.length === 0) {
-    container.append(pageHead({ title: "Jobs" }), h("div.card", {}, stateBlock(store.COPY.empty.jobs)));
+    container.append(
+      pageHead({ title: "Jobs", actions: addAction }),
+      h("div.card", {}, stateBlock(store.COPY.empty.jobs, { onAction: () => jobModal() })));
     return;
   }
 
@@ -45,6 +83,7 @@ function paint(container) {
     pageHead({
       title: "Jobs",
       sub: store.isOwner() ? "Every contracted scope of work" : "The jobs you run",
+      actions: addAction,
     }),
     h("div.filters", {},
       h("input", {
@@ -99,6 +138,7 @@ export function detail(container, id) {
       crumbs: [{ label: "Jobs", href: "#/jobs" }, { label: j.id }],
       actions: h("div.head-actions", {},
         statusChip("job", j.status),
+        store.isOwner() && h("button.btn.btn-secondary", { type: "button", onclick: () => jobModal(j) }, "Edit"),
         ["Active", "Mobilising"].includes(j.status) && h("a.btn.btn-primary", { href: `#/allocate?job=${j.id}` }, "Allocate assets")),
     }),
     h("div.kpis", {},

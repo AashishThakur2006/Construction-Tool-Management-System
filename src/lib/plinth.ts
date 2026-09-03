@@ -21,13 +21,17 @@ export type Op = {
 };
 
 // table -> real name + the columns a write may set/insert
-const TABLES: Record<
-  string,
-  { table: string; cols: string[] }
-> = {
+const TABLES: Record<string, { table: string; cols: string[] }> = {
+  job: {
+    table: "jobs",
+    cols: ["id", "name", "client", "location", "status", "started", "ends", "engineer_id", "hold_note"],
+  },
   asset: {
     table: "assets",
-    cols: ["status", "job_id", "allocated_on", "condition", "hours"],
+    cols: [
+      "id", "category", "model", "serial", "purchased", "value", "condition",
+      "status", "job_id", "allocated_on", "hours",
+    ],
   },
   history: {
     table: "asset_history",
@@ -54,6 +58,10 @@ const TABLES: Record<
   },
 };
 
+// columns a Site Engineer may set on an existing asset (allocate / return / transfer)
+const ENGINEER_ASSET_COLS = ["status", "job_id", "allocated_on"];
+const ENGINEER_ASSET_STATUS = ["In yard", "Allocated", "In workshop"];
+
 export function tableFor(t: string) {
   return TABLES[t];
 }
@@ -66,7 +74,8 @@ export function denyReason(op: Op, role: Role): string | null {
   const def = TABLES[op.t];
   if (!def) return `Unknown target "${op.t}"`;
 
-  const keys = Object.keys(op.set ?? op.insert ?? {});
+  const payload = op.set ?? op.insert ?? {};
+  const keys = Object.keys(payload);
   const badCol = keys.find((k) => !def.cols.includes(k));
   if (badCol) return `Column "${badCol}" is not writable on ${op.t}`;
 
@@ -74,11 +83,14 @@ export function denyReason(op: Op, role: Role): string | null {
 
   // ---- Site Engineer rules ----
   switch (op.t) {
+    case "job":
+      return "Only the Owner manages jobs";
     case "asset": {
-      // allocate / return / transfer only — never retire, never edit specs
       if (op.insert || op.del) return "Engineers cannot add or remove assets";
+      const bad = keys.find((k) => !ENGINEER_ASSET_COLS.includes(k));
+      if (bad) return `Engineers can only allocate, return or transfer — not edit ${bad}`;
       const status = op.set?.status as string | undefined;
-      if (status && !["In yard", "Allocated", "In workshop"].includes(status)) {
+      if (status && !ENGINEER_ASSET_STATUS.includes(status)) {
         return "Engineers cannot set that asset status";
       }
       return null;

@@ -11,6 +11,8 @@ import * as maintenance from "./views/maintenance.js";
 import * as payments from "./views/payments.js";
 import * as search from "./views/search.js";
 import * as settings from "./views/settings.js";
+import * as reports from "./views/reports.js";
+import * as team from "./views/team.js";
 import * as misc from "./views/misc.js";
 
 store.applyPrefs();
@@ -47,6 +49,8 @@ const NAV = [
       ? [h("span.alert", {}, `${c.payments.overdue} overdue · ${fmt.inrC(c.payments.overdueSum)}`)]
       : (c.payments.pending ? `${c.payments.pending} pending` : "settled"),
   },
+  { key: "reports", label: "Reports", icon: "dashboard", owner: true, sub: () => "fleet, spend & maintenance" },
+  { key: "team", label: "Team", icon: "employees", owner: true, sub: () => "accounts & access" },
 ];
 
 /* ---------------- shell ---------------- */
@@ -115,7 +119,8 @@ function refreshNav() {
   if (!navEl) return;
   const counts = store.navCounts();
   const current = parseHash().segs[0] || "dashboard";
-  navEl.replaceChildren(...NAV.map((item) => {
+  const nav = NAV.filter((item) => !item.owner || store.isOwner());
+  navEl.replaceChildren(...nav.map((item) => {
     const sub = item.sub(counts);
     return h("a.nav-item", {
       href: "#/" + item.key,
@@ -150,6 +155,8 @@ const views = {
   payments: { title: "Payments", render: (c, seg) => seg[1] ? payments.detail(c, seg[1]) : payments.list(c) },
   search: { title: "Search", render: (c, seg, params) => search.render(c, params) },
   settings: { title: "Settings", render: (c) => settings.render(c) },
+  reports: { title: "Reports", render: (c) => reports.render(c) },
+  team: { title: "Team", render: (c) => team.render(c) },
   preview: { title: "Interface states", render: (c, seg) => misc.preview(c, seg[1]) },
   denied: { title: "Restricted", render: (c) => misc.denied(c) },
 };

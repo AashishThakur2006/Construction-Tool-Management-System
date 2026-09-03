@@ -250,6 +250,17 @@ a { color: inherit; }
 
 .link-btn { color: var(--moss); font-weight: 500; text-decoration: none; font-size: 13px; }
 .link-btn:hover { text-decoration: underline; }
+.link-btn.as-btn { background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; }
+.link-btn.danger { color: var(--ember, #b23); }
+
+.inline-select {
+  font: inherit; font-size: 12.5px; padding: 5px 8px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--chalk); color: var(--ink); max-width: 180px;
+}
+.inline-select:disabled { opacity: .5; }
+.two-col-fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+@media (max-width: 480px) { .two-col-fields { grid-template-columns: 1fr; } }
 
 /* ---- chips & badges ------------------------------------------------------- */
 

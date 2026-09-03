@@ -474,6 +474,118 @@ export function retireAsset(id) {
   return () => { restore(); emit(); push(inv); };
 }
 
+/* ---------------- jobs & assets (Owner) ---------------- */
+function nextJobId() {
+  const yy = String(new Date(TODAY).getFullYear()).slice(2);
+  const nums = db.jobs
+    .map((j) => /^JOB-\d\d-(\d+)$/.exec(j.id))
+    .filter(Boolean)
+    .map((m) => Number(m[1]));
+  return `JOB-${yy}-${String(Math.max(0, ...nums) + 1).padStart(3, "0")}`;
+}
+
+export function addJob({ name, client, location, status, started, ends, engineerId }) {
+  const restore = snapshot();
+  const id = nextJobId();
+  const row = { id, name, client: client || "", location: location || "", status: status || "Mobilising", started: started || null, ends: ends || null, engineerId: engineerId || null, holdNote: null };
+  db.jobs.push(row);
+  emit();
+  push([{ t: "job", insert: {
+    id, name, client: row.client, location: row.location, status: row.status,
+    started: row.started, ends: row.ends, engineer_id: row.engineerId,
+  } }], restore);
+  return { id, undo: () => { restore(); emit(); push([{ t: "job", del: id }]); } };
+}
+
+export function updateJob(id, patch) {
+  const restore = snapshot();
+  const j = job(id);
+  const prev = { name: j.name, client: j.client, location: j.location, status: j.status, started: j.started, ends: j.ends, engineerId: j.engineerId };
+  Object.assign(j, patch);
+  emit();
+  push([{ t: "job", id, set: {
+    name: j.name, client: j.client, location: j.location, status: j.status,
+    started: j.started || null, ends: j.ends || null, engineer_id: j.engineerId || null,
+  } }], restore);
+  return () => {
+    restore(); emit();
+    push([{ t: "job", id, set: {
+      name: prev.name, client: prev.client, location: prev.location, status: prev.status,
+      started: prev.started || null, ends: prev.ends || null, engineer_id: prev.engineerId || null,
+    } }]);
+  };
+}
+
+export function addAsset({ category, model, serial, purchased, value, condition }) {
+  const restore = snapshot();
+  const id = nextId("AST-", db.assets, 100, 4);
+  const row = { id, category: category || "", model: model || "", serial: serial || "", purchased: purchased || null, value: Number(value) || 0, condition: condition || "B", status: "In yard", jobId: null, allocatedOn: null, hours: 0 };
+  db.assets.push(row);
+  const note = `Purchased and registered · ₹${row.value.toLocaleString("en-IN")}`;
+  hist(id, "Registered", note);
+  emit();
+  push([
+    { t: "asset", insert: { id, category: row.category, model: row.model, serial: row.serial, purchased: row.purchased, value: row.value, condition: row.condition, status: "In yard", hours: 0 } },
+    { t: "history", insert: { asset_id: id, on: row.purchased || TODAY, kind: "Registered", note } },
+  ], restore);
+  return { id, undo: () => { restore(); emit(); push([{ t: "asset", del: id }]); } };
+}
+
+export function updateAsset(id, patch) {
+  const restore = snapshot();
+  const a = asset(id);
+  const prev = { category: a.category, model: a.model, serial: a.serial, purchased: a.purchased, value: a.value, condition: a.condition, hours: a.hours };
+  Object.assign(a, patch, { value: patch.value != null ? Number(patch.value) : a.value, hours: patch.hours != null ? Number(patch.hours) : a.hours });
+  emit();
+  const send = (o) => push([{ t: "asset", id, set: {
+    category: o.category, model: o.model, serial: o.serial,
+    purchased: o.purchased || null, value: Number(o.value) || 0,
+    condition: o.condition, hours: Number(o.hours) || 0,
+  } }]);
+  send(a);
+  return () => { restore(); emit(); send(prev); };
+}
+
+/* ---------------- team (Owner, no undo) ---------------- */
+export async function fetchTeam() { return api("/api/team"); }
+export async function createMember(payload) {
+  return api("/api/team", { method: "POST", body: JSON.stringify(payload) });
+}
+export async function updateMember(id, patch) {
+  return api("/api/team/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(patch) });
+}
+export async function removeMember(id) {
+  return api("/api/team/" + encodeURIComponent(id), { method: "DELETE" });
+}
+
+/* ---------------- CSV import (Owner) ---------------- */
+/** rows: array of {category,model,serial,purchased,value,condition}. Applied in one batch. */
+export async function importAssets(rows) {
+  const restore = snapshot();
+  const ops = [];
+  rows.forEach((r) => {
+    const id = nextId("AST-", db.assets, 100, 4);
+    const value = Number(r.value) || 0;
+    const row = { id, category: r.category || "", model: r.model || "", serial: r.serial || "", purchased: r.purchased || null, value, condition: /^[A-D]$/.test(r.condition) ? r.condition : "B", status: "In yard", jobId: null, allocatedOn: null, hours: 0 };
+    db.assets.push(row);
+    const note = `Imported and registered · ₹${value.toLocaleString("en-IN")}`;
+    hist(id, "Registered", note);
+    ops.push({ t: "asset", insert: { id, category: row.category, model: row.model, serial: row.serial, purchased: row.purchased, value, condition: row.condition, status: "In yard", hours: 0 } });
+    ops.push({ t: "history", insert: { asset_id: id, on: row.purchased || TODAY, kind: "Registered", note } });
+  });
+  emit();
+  try {
+    // chunk to stay under the /api/mutate op cap
+    for (let i = 0; i < ops.length; i += 80) {
+      await api("/api/mutate", { method: "POST", body: JSON.stringify({ ops: ops.slice(i, i + 80) }) });
+    }
+    return { count: rows.length };
+  } catch (e) {
+    restore(); emit();
+    throw e;
+  }
+}
+
 /* ---------------- global search ---------------- */
 export function searchAll(q) {
   const s = q.trim().toLowerCase();

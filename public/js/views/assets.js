@@ -12,6 +12,78 @@ const state = {
   selected: new Set(),
 };
 
+const CONDS = ["A", "B", "C", "D"];
+
+export function assetModal(existing) {
+  const f = {
+    model: field({ name: "model", label: "Model", required: true, value: existing?.model || "" }),
+    category: field({ name: "category", label: "Category", value: existing?.category || "" }),
+    serial: field({ name: "serial", label: "Serial", value: existing?.serial || "" }),
+    condition: field({ name: "condition", label: "Condition", type: "select", value: existing?.condition || "B", options: CONDS.map((c) => ({ value: c, label: `Condition ${c}` })) }),
+    value: field({ name: "value", label: "Book value (₹)", type: "number", inputmode: "numeric", value: existing ? String(existing.value) : "", validate: (v) => +v >= 0 ? null : "Enter zero or more" }),
+    purchased: field({ name: "purchased", label: "Purchased", type: "date", value: existing?.purchased || "" }),
+    hours: existing ? field({ name: "hours", label: "Meter hours", type: "number", inputmode: "numeric", value: String(existing.hours) }) : null,
+  };
+  let dlg;
+  const submit = submitRow([f.model], existing ? "Save asset" : "Register asset", () => {
+    const data = {
+      model: f.model.get(), category: f.category.get(), serial: f.serial.get(),
+      condition: f.condition.get(), value: f.value.get() || 0, purchased: f.purchased.get() || null,
+    };
+    if (existing) {
+      if (f.hours) data.hours = f.hours.get() || 0;
+      store.updateAsset(existing.id, data);
+      toast(`${existing.id} updated.`);
+    } else {
+      const { id } = store.addAsset(data);
+      toast(`${id} registered to the yard.`);
+      location.hash = `/assets/${id}`;
+    }
+    dlg.close();
+  });
+  dlg = openModal({
+    title: existing ? `Edit ${existing.id}` : "Register an asset",
+    content: h("form", { onsubmit: (e) => e.preventDefault() },
+      f.model.root, f.category.root, f.serial.root,
+      h("div.two-col-fields", {}, f.condition.root, f.value.root),
+      h("div.two-col-fields", {}, f.purchased.root, f.hours?.root || h("div")),
+      submit),
+  });
+}
+
+export function importModal() {
+  const ta = field({
+    name: "csv", label: "Paste CSV rows", type: "textarea", rows: 8, required: true,
+    help: "Header row: model,category,serial,condition,value,purchased. One asset per line.",
+  });
+  let dlg;
+  const submit = submitRow([ta], "Import", async () => {
+    const lines = ta.get().split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (lines.length < 2) { toast("Add a header row and at least one asset."); return; }
+    const head = lines[0].split(",").map((s) => s.trim().toLowerCase());
+    const rows = lines.slice(1).map((line) => {
+      const cells = line.split(",");
+      const o = {};
+      head.forEach((k, i) => { o[k] = (cells[i] || "").trim(); });
+      return o;
+    });
+    try {
+      const r = await store.importAssets(rows);
+      dlg.close();
+      toast(`Imported ${r.count} asset${r.count === 1 ? "" : "s"} to the yard.`);
+    } catch (e) {
+      toast(e.message || "Import failed — nothing was saved.");
+    }
+  });
+  dlg = openModal({
+    title: "Import assets",
+    content: h("form", { onsubmit: (e) => e.preventDefault() },
+      ta.root,
+      h("p.form-note", {}, "Example:  Belle Minimix 150,Concrete,BEL-40912,B,84000,2024-05-01"),
+      submit),
+  });
+}
+
 export function list(container) {
   container.append(skelTable(10));
   store.load("assets").then(() => { container.replaceChildren(); paint(container); });
@@ -21,8 +93,14 @@ function paint(container) {
   const all = store.visibleAssets().filter((a) => a.status !== "Retired" || store.isOwner());
   const rerender = () => { container.replaceChildren(); paint(container); };
 
+  const ownerActions = store.isOwner() ? h("div.head-actions", {},
+    h("button.btn.btn-secondary", { type: "button", onclick: () => importModal() }, "Import CSV"),
+    h("button.btn.btn-primary", { type: "button", onclick: () => assetModal() }, "Register asset")) : null;
+
   if (all.length === 0) {
-    container.append(pageHead({ title: "Assets" }), h("div.card", {}, stateBlock(store.COPY.empty.assets)));
+    container.append(
+      pageHead({ title: "Assets", actions: ownerActions }),
+      h("div.card", {}, stateBlock(store.COPY.empty.assets, { onAction: () => assetModal() })));
     return;
   }
 
@@ -87,6 +165,7 @@ function paint(container) {
     pageHead({
       title: "Assets",
       sub: `${all.length} on the register · ${fmt.inrC(all.reduce((s, a) => s + a.value, 0))} of plant`,
+      actions: ownerActions,
     }),
     h("div.filters", {},
       h("input", {
@@ -139,6 +218,9 @@ function paintDetail(container, id) {
   const activeJobs = store.myJobs().filter((x) => ["Active", "Mobilising"].includes(x.status));
 
   const actions = h("div.head-actions", {});
+  if (store.isOwner() && a.status !== "Retired") {
+    actions.append(h("button.btn.btn-secondary", { type: "button", onclick: () => assetModal(a) }, "Edit"));
+  }
   if (a.status === "In yard") {
     actions.append(h("a.btn.btn-primary", { href: `#/allocate?assets=${a.id}` }, "Allocate"));
   }
