@@ -18,13 +18,9 @@ export default function SiteLayout({
   return (
     <>
       <link rel="stylesheet" href="/landing.css" />
-      <div className="orb-field" aria-hidden="true">
-        <span className="orb orb--1" />
-        <span className="orb orb--2" />
-        <span className="orb orb--3" />
-      </div>
+      <a className="skip-link" href="#main">Skip to content</a>
       <SiteHeader />
-      <main>{children}</main>
+      <main id="main">{children}</main>
       <SiteFooter />
       <Script src="/landing.js" strategy="afterInteractive" />
     </>

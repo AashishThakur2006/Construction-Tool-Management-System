@@ -4,6 +4,9 @@ import { requireOwner } from "@/lib/auth";
 import { errorResponse, badRequest, notFound } from "@/lib/api";
 import { str } from "@/lib/validation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { originGuard } from "@/lib/security";
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Update a member's name, role or linked employee. Owner only. */
 export async function PATCH(
@@ -11,9 +14,13 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const blocked = originGuard(request);
+    if (blocked) return blocked;
     const owner = await requireOwner();
     const { id } = await params;
-    const body = await request.json();
+    if (!UUID.test(id)) return badRequest("Malformed account id");
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") return badRequest("Invalid request body");
 
     const role = body.role === "OWNER" || body.role === "SITE_ENGINEER" ? body.role : undefined;
     const name = body.name != null ? str(body.name) : undefined;
@@ -43,12 +50,15 @@ export async function PATCH(
 
 /** Remove an account. Owner only; can't remove yourself. */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const blocked = originGuard(request);
+    if (blocked) return blocked;
     const owner = await requireOwner();
     const { id } = await params;
+    if (!UUID.test(id)) return badRequest("Malformed account id");
     if (id === owner.userId) return badRequest("You can't remove your own account");
 
     const admin = createAdminClient();

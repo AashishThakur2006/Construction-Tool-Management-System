@@ -1,119 +1,119 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 720" fill="none" font-family="'Public Sans','Segoe UI',system-ui,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 720" fill="none" font-family="Inter,system-ui,sans-serif">
   <defs>
     <linearGradient id="dwash" x1="0" y1="0" x2="0.5" y2="1">
-      <stop offset="0" stop-color="#1a1e17"/><stop offset="1" stop-color="#111310"/>
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f0f2f4"/>
     </linearGradient>
     <radialGradient id="dglow" cx="26%" cy="16%" r="70%">
-      <stop offset="0" stop-color="#6cc08f" stop-opacity="0.20"/>
-      <stop offset="0.7" stop-color="#6cc08f" stop-opacity="0"/>
+      <stop offset="0" stop-color="#0f68ea" stop-opacity="0.20"/>
+      <stop offset="0.7" stop-color="#0f68ea" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="bar" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0" stop-color="#6cc08f" stop-opacity="0.25"/><stop offset="1" stop-color="#6cc08f"/>
+      <stop offset="0" stop-color="#0f68ea" stop-opacity="0.25"/><stop offset="1" stop-color="#0f68ea"/>
     </linearGradient>
   </defs>
 
   <!-- window -->
-  <rect x="0.5" y="0.5" width="1119" height="719" rx="18" fill="url(#dwash)" stroke="#33372b"/>
+  <rect x="0.5" y="0.5" width="1119" height="719" rx="18" fill="url(#dwash)" stroke="#e5e6e8"/>
   <rect x="0.5" y="0.5" width="1119" height="719" rx="18" fill="url(#dglow)"/>
-  <path d="M18 44 H1102" stroke="#262a20"/>
-  <g fill="#4b4f42"><circle cx="34" cy="24" r="5"/><circle cx="54" cy="24" r="5"/><circle cx="74" cy="24" r="5"/></g>
-  <rect x="430" y="14" width="260" height="20" rx="10" fill="#191c16"/>
-  <text x="470" y="28" font-size="11" fill="#6f7263" font-family="'Spline Sans Mono',monospace">plinth.app/dashboard</text>
+  <path d="M18 44 H1102" stroke="#f0f2f4"/>
+  <g fill="#c9ccd1"><circle cx="34" cy="24" r="5"/><circle cx="54" cy="24" r="5"/><circle cx="74" cy="24" r="5"/></g>
+  <rect x="430" y="14" width="260" height="20" rx="10" fill="#ffffff"/>
+  <text x="470" y="28" font-size="11" fill="#5b5f68" font-family="ui-monospace,Consolas,monospace">plinth.app/dashboard</text>
 
   <!-- sidebar -->
-  <rect x="18" y="44" width="212" height="676" fill="#15180f" fill-opacity="0.6"/>
-  <path d="M230 44 V720" stroke="#262a20"/>
-  <text x="42" y="86" font-size="17" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">Plinth</text>
-  <text x="42" y="102" font-size="8.5" letter-spacing="1.6" fill="#6f7263" font-family="'Spline Sans Mono',monospace">PLANT REGISTER</text>
-  <rect x="30" y="128" width="188" height="34" rx="9" fill="#2c4536"/>
-  <g font-size="12.5" fill="#c9cbbb">
-    <rect x="42" y="140" width="13" height="10" rx="2" fill="#6cc08f"/><text x="66" y="149" fill="#eef0e6">Dashboard</text>
-    <rect x="42" y="180" width="13" height="10" rx="2" fill="#5c5f52"/><text x="66" y="189">Jobs</text>
-    <rect x="42" y="216" width="13" height="10" rx="2" fill="#5c5f52"/><text x="66" y="225">Assets</text>
-    <rect x="42" y="252" width="13" height="10" rx="2" fill="#5c5f52"/><text x="66" y="261">Allocate</text>
-    <rect x="42" y="288" width="13" height="10" rx="2" fill="#5c5f52"/><text x="66" y="297">Employees</text>
-    <rect x="42" y="324" width="13" height="10" rx="2" fill="#5c5f52"/><text x="66" y="333">Maintenance</text>
-    <rect x="42" y="360" width="13" height="10" rx="2" fill="#5c5f52"/><text x="66" y="369">Payments</text>
+  <rect x="18" y="44" width="212" height="676" fill="#ffffff" fill-opacity="0.6"/>
+  <path d="M230 44 V720" stroke="#f0f2f4"/>
+  <text x="42" y="86" font-size="17" font-weight="700" fill="#1d1d1f" font-family="Inter,system-ui,sans-serif">Plinth</text>
+  <text x="42" y="102" font-size="8.5" letter-spacing="1.6" fill="#5b5f68" font-family="ui-monospace,Consolas,monospace">PLANT REGISTER</text>
+  <rect x="30" y="128" width="188" height="34" rx="9" fill="#e8f0fd"/>
+  <g font-size="12.5" fill="#3a3d44">
+    <rect x="42" y="140" width="13" height="10" rx="2" fill="#0f68ea"/><text x="66" y="149" fill="#1d1d1f">Dashboard</text>
+    <rect x="42" y="180" width="13" height="10" rx="2" fill="#5b5f68"/><text x="66" y="189">Jobs</text>
+    <rect x="42" y="216" width="13" height="10" rx="2" fill="#5b5f68"/><text x="66" y="225">Assets</text>
+    <rect x="42" y="252" width="13" height="10" rx="2" fill="#5b5f68"/><text x="66" y="261">Allocate</text>
+    <rect x="42" y="288" width="13" height="10" rx="2" fill="#5b5f68"/><text x="66" y="297">Employees</text>
+    <rect x="42" y="324" width="13" height="10" rx="2" fill="#5b5f68"/><text x="66" y="333">Maintenance</text>
+    <rect x="42" y="360" width="13" height="10" rx="2" fill="#5b5f68"/><text x="66" y="369">Payments</text>
   </g>
-  <path d="M30 668 H206" stroke="#262a20"/>
-  <circle cx="46" cy="694" r="12" fill="#242a1e"/><text x="41" y="698" font-size="10" fill="#9b9d8b">RP</text>
-  <text x="66" y="691" font-size="11.5" fill="#eef0e6">Rajendra Palekar</text>
-  <text x="66" y="704" font-size="9.5" fill="#6f7263">Owner</text>
+  <path d="M30 668 H206" stroke="#f0f2f4"/>
+  <circle cx="46" cy="694" r="12" fill="#f0f2f4"/><text x="41" y="698" font-size="10" fill="#5b5f68">RP</text>
+  <text x="66" y="691" font-size="11.5" fill="#1d1d1f">Rajendra Palekar</text>
+  <text x="66" y="704" font-size="9.5" fill="#5b5f68">Owner</text>
 
   <!-- main -->
-  <text x="262" y="86" font-size="22" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">Morning, Rajendra</text>
-  <text x="262" y="106" font-size="11.5" fill="#9b9d8b">Fleet position for 19 Jul 2026 — live from the register</text>
+  <text x="262" y="86" font-size="22" font-weight="700" fill="#1d1d1f" font-family="Inter,system-ui,sans-serif">Morning, Rajendra</text>
+  <text x="262" y="106" font-size="11.5" fill="#5b5f68">Fleet position for 19 Jul 2026 — live from the register</text>
 
   <!-- hero utilization panel -->
-  <rect x="262" y="126" width="820" height="150" rx="12" fill="#12140f" stroke="#33372b"/>
+  <rect x="262" y="126" width="820" height="150" rx="12" fill="#f0f2f4" stroke="#e5e6e8"/>
   <rect x="262" y="126" width="820" height="150" rx="12" fill="url(#dglow)"/>
-  <g fill="#6cc08f">
+  <g fill="#0f68ea">
     <circle cx="330" cy="200" r="16" fill-opacity="0.5"/><circle cx="470" cy="170" r="10" fill-opacity="0.7"/>
     <circle cx="600" cy="220" r="20" fill-opacity="0.4"/><circle cx="760" cy="180" r="12" fill-opacity="0.6"/>
     <circle cx="900" cy="230" r="14" fill-opacity="0.5"/><circle cx="1010" cy="190" r="9" fill-opacity="0.7"/>
   </g>
-  <g fill="#5b6150"><circle cx="400" cy="240" r="3"/><circle cx="540" cy="150" r="3"/><circle cx="680" cy="255" r="3"/><circle cx="840" cy="150" r="3"/><circle cx="960" cy="255" r="3"/></g>
-  <text x="286" y="238" font-size="26" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">56% of the fleet is on a job</text>
-  <g font-size="10.5" fill="#9b9d8b" font-family="'Spline Sans Mono',monospace">
+  <g fill="#c9ccd1"><circle cx="400" cy="240" r="3"/><circle cx="540" cy="150" r="3"/><circle cx="680" cy="255" r="3"/><circle cx="840" cy="150" r="3"/><circle cx="960" cy="255" r="3"/></g>
+  <text x="286" y="238" font-size="26" font-weight="700" fill="#1d1d1f" font-family="Inter,system-ui,sans-serif">56% of the fleet is on a job</text>
+  <g font-size="10.5" fill="#5b5f68" font-family="ui-monospace,Consolas,monospace">
     <text x="286" y="258">36 allocated</text><text x="400" y="258">21 in yard</text><text x="500" y="258">7 in workshop</text><text x="640" y="258">7 active jobs</text>
   </g>
 
   <!-- KPI cards -->
   <g>
-    <rect x="262" y="292" width="200" height="92" rx="12" fill="#171a14" stroke="#33372b"/>
-    <text x="282" y="318" font-size="10.5" fill="#9b9d8b">Fleet value</text>
-    <text x="282" y="344" font-size="20" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">₹18.2 Cr</text>
-    <text x="282" y="366" font-size="10" fill="#6f7263">64 assets registered</text>
+    <rect x="262" y="292" width="200" height="92" rx="12" fill="#ffffff" stroke="#e5e6e8"/>
+    <text x="282" y="318" font-size="10.5" fill="#5b5f68">Fleet value</text>
+    <text x="282" y="344" font-size="20" font-weight="700" fill="#1d1d1f" font-family="Inter,system-ui,sans-serif">₹18.2 Cr</text>
+    <text x="282" y="366" font-size="10" fill="#5b5f68">64 assets registered</text>
 
-    <rect x="472" y="292" width="200" height="92" rx="12" fill="#171a14" stroke="#33372b"/>
-    <text x="492" y="318" font-size="10.5" fill="#9b9d8b">Committed spend</text>
-    <text x="492" y="344" font-size="20" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">₹67.5 L</text>
-    <text x="492" y="366" font-size="10" fill="#6f7263">8 open payments</text>
+    <rect x="472" y="292" width="200" height="92" rx="12" fill="#ffffff" stroke="#e5e6e8"/>
+    <text x="492" y="318" font-size="10.5" fill="#5b5f68">Committed spend</text>
+    <text x="492" y="344" font-size="20" font-weight="700" fill="#1d1d1f" font-family="Inter,system-ui,sans-serif">₹67.5 L</text>
+    <text x="492" y="366" font-size="10" fill="#5b5f68">8 open payments</text>
 
-    <rect x="682" y="292" width="200" height="92" rx="12" fill="#171a14" stroke="#33372b"/>
-    <text x="702" y="318" font-size="10.5" fill="#9b9d8b">Overdue payments</text>
-    <text x="702" y="344" font-size="20" font-weight="700" fill="#e0784f" font-family="'Bricolage Grotesque',sans-serif">₹28.9 L</text>
-    <text x="702" y="366" font-size="10" fill="#e0784f" fill-opacity="0.8">3 invoices past due</text>
+    <rect x="682" y="292" width="200" height="92" rx="12" fill="#ffffff" stroke="#e5e6e8"/>
+    <text x="702" y="318" font-size="10.5" fill="#5b5f68">Overdue payments</text>
+    <text x="702" y="344" font-size="20" font-weight="700" fill="#e0a800" font-family="Inter,system-ui,sans-serif">₹28.9 L</text>
+    <text x="702" y="366" font-size="10" fill="#e0a800" fill-opacity="0.8">3 invoices past due</text>
 
-    <rect x="892" y="292" width="190" height="92" rx="12" fill="#171a14" stroke="#33372b"/>
-    <text x="912" y="318" font-size="10.5" fill="#9b9d8b">Maint. exposure</text>
-    <text x="912" y="344" font-size="20" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">₹16.7 L</text>
-    <text x="912" y="366" font-size="10" fill="#6f7263">9 open requests</text>
+    <rect x="892" y="292" width="190" height="92" rx="12" fill="#ffffff" stroke="#e5e6e8"/>
+    <text x="912" y="318" font-size="10.5" fill="#5b5f68">Maint. exposure</text>
+    <text x="912" y="344" font-size="20" font-weight="700" fill="#1d1d1f" font-family="Inter,system-ui,sans-serif">₹16.7 L</text>
+    <text x="912" y="366" font-size="10" fill="#5b5f68">9 open requests</text>
   </g>
 
   <!-- table -->
-  <rect x="262" y="400" width="520" height="300" rx="12" fill="#171a14" stroke="#33372b"/>
-  <text x="284" y="428" font-size="12.5" font-weight="600" fill="#eef0e6">Assets by active job</text>
-  <g font-family="'Spline Sans Mono',monospace" font-size="11" fill="#9b9d8b">
+  <rect x="262" y="400" width="520" height="300" rx="12" fill="#ffffff" stroke="#e5e6e8"/>
+  <text x="284" y="428" font-size="12.5" font-weight="600" fill="#1d1d1f">Assets by active job</text>
+  <g font-family="ui-monospace,Consolas,monospace" font-size="11" fill="#5b5f68">
     <text x="284" y="466">JOB-24-011</text><text x="284" y="500">JOB-24-014</text><text x="284" y="534">JOB-24-017</text>
     <text x="284" y="568">JOB-25-002</text><text x="284" y="602">JOB-25-005</text><text x="284" y="636">JOB-25-008</text>
   </g>
   <g>
-    <rect x="392" y="458" width="330" height="8" rx="4" fill="#262a20"/><rect x="392" y="458" width="300" height="8" rx="4" fill="url(#bar)"/>
-    <rect x="392" y="492" width="330" height="8" rx="4" fill="#262a20"/><rect x="392" y="492" width="250" height="8" rx="4" fill="url(#bar)"/>
-    <rect x="392" y="526" width="330" height="8" rx="4" fill="#262a20"/><rect x="392" y="526" width="250" height="8" rx="4" fill="url(#bar)"/>
-    <rect x="392" y="560" width="330" height="8" rx="4" fill="#262a20"/><rect x="392" y="560" width="250" height="8" rx="4" fill="url(#bar)"/>
-    <rect x="392" y="594" width="330" height="8" rx="4" fill="#262a20"/><rect x="392" y="594" width="250" height="8" rx="4" fill="url(#bar)"/>
-    <rect x="392" y="628" width="330" height="8" rx="4" fill="#262a20"/><rect x="392" y="628" width="200" height="8" rx="4" fill="url(#bar)"/>
+    <rect x="392" y="458" width="330" height="8" rx="4" fill="#f0f2f4"/><rect x="392" y="458" width="300" height="8" rx="4" fill="url(#bar)"/>
+    <rect x="392" y="492" width="330" height="8" rx="4" fill="#f0f2f4"/><rect x="392" y="492" width="250" height="8" rx="4" fill="url(#bar)"/>
+    <rect x="392" y="526" width="330" height="8" rx="4" fill="#f0f2f4"/><rect x="392" y="526" width="250" height="8" rx="4" fill="url(#bar)"/>
+    <rect x="392" y="560" width="330" height="8" rx="4" fill="#f0f2f4"/><rect x="392" y="560" width="250" height="8" rx="4" fill="url(#bar)"/>
+    <rect x="392" y="594" width="330" height="8" rx="4" fill="#f0f2f4"/><rect x="392" y="594" width="250" height="8" rx="4" fill="url(#bar)"/>
+    <rect x="392" y="628" width="330" height="8" rx="4" fill="#f0f2f4"/><rect x="392" y="628" width="200" height="8" rx="4" fill="url(#bar)"/>
   </g>
-  <g font-family="'Spline Sans Mono',monospace" font-size="11" fill="#c9cbbb" text-anchor="end">
+  <g font-family="ui-monospace,Consolas,monospace" font-size="11" fill="#3a3d44" text-anchor="end">
     <text x="742" y="466">6</text><text x="742" y="500">5</text><text x="742" y="534">5</text><text x="742" y="568">5</text><text x="742" y="602">5</text><text x="742" y="636">4</text>
   </g>
 
   <!-- needs attention -->
-  <rect x="800" y="400" width="282" height="300" rx="12" fill="#171a14" stroke="#33372b"/>
-  <text x="822" y="428" font-size="12.5" font-weight="600" fill="#eef0e6">Needs attention</text>
+  <rect x="800" y="400" width="282" height="300" rx="12" fill="#ffffff" stroke="#e5e6e8"/>
+  <text x="822" y="428" font-size="12.5" font-weight="600" fill="#1d1d1f">Needs attention</text>
   <g>
-    <text x="822" y="462" font-size="11" fill="#eef0e6" font-family="'Spline Sans Mono',monospace">INV-26498 · Pune Crane</text>
-    <text x="822" y="478" font-size="9.5" fill="#6f7263">due 30 Jun 2026</text>
-    <text x="1060" y="466" font-size="11" fill="#e0784f" text-anchor="end" font-family="'Spline Sans Mono',monospace">₹4.8 L</text>
-    <path d="M822 496 H1060" stroke="#262a20"/>
-    <text x="822" y="522" font-size="11" fill="#eef0e6" font-family="'Spline Sans Mono',monospace">INV-26463 · Sanghvi</text>
-    <text x="822" y="538" font-size="9.5" fill="#6f7263">due 15 Jun 2026</text>
-    <text x="1060" y="526" font-size="11" fill="#e0784f" text-anchor="end" font-family="'Spline Sans Mono',monospace">₹15.9 L</text>
-    <path d="M822 556 H1060" stroke="#262a20"/>
-    <text x="822" y="582" font-size="11" fill="#eef0e6" font-family="'Spline Sans Mono',monospace">MR-149 · Hilti breaker</text>
-    <text x="822" y="598" font-size="9.5" fill="#6f7263">Reported · running late</text>
-    <rect x="1006" y="572" width="54" height="16" rx="8" fill="#3a2a1e"/><text x="1033" y="583" font-size="9" fill="#e0784f" text-anchor="middle">Reported</text>
+    <text x="822" y="462" font-size="11" fill="#1d1d1f" font-family="ui-monospace,Consolas,monospace">INV-26498 · Pune Crane</text>
+    <text x="822" y="478" font-size="9.5" fill="#5b5f68">due 30 Jun 2026</text>
+    <text x="1060" y="466" font-size="11" fill="#e0a800" text-anchor="end" font-family="ui-monospace,Consolas,monospace">₹4.8 L</text>
+    <path d="M822 496 H1060" stroke="#f0f2f4"/>
+    <text x="822" y="522" font-size="11" fill="#1d1d1f" font-family="ui-monospace,Consolas,monospace">INV-26463 · Sanghvi</text>
+    <text x="822" y="538" font-size="9.5" fill="#5b5f68">due 15 Jun 2026</text>
+    <text x="1060" y="526" font-size="11" fill="#e0a800" text-anchor="end" font-family="ui-monospace,Consolas,monospace">₹15.9 L</text>
+    <path d="M822 556 H1060" stroke="#f0f2f4"/>
+    <text x="822" y="582" font-size="11" fill="#1d1d1f" font-family="ui-monospace,Consolas,monospace">MR-149 · Hilti breaker</text>
+    <text x="822" y="598" font-size="9.5" fill="#5b5f68">Reported · running late</text>
+    <rect x="1006" y="572" width="54" height="16" rx="8" fill="#fff4c2"/><text x="1033" y="583" font-size="9" fill="#e0a800" text-anchor="middle">Reported</text>
   </g>
 </svg>

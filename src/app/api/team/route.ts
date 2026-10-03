@@ -4,6 +4,7 @@ import { requireOwner } from "@/lib/auth";
 import { errorResponse, badRequest } from "@/lib/api";
 import { isEmail, str } from "@/lib/validation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { generateTempPassword, originGuard } from "@/lib/security";
 
 /** List every account, joined to its email and linked employee. Owner only. */
 export async function GET() {
@@ -27,6 +28,8 @@ export async function GET() {
 /** Create an account. Returns the temporary password to hand to the person. */
 export async function POST(request: NextRequest) {
   try {
+    const blocked = originGuard(request);
+    if (blocked) return blocked;
     await requireOwner();
     const body = await request.json();
     const email = str(body.email).toLowerCase();
@@ -41,8 +44,7 @@ export async function POST(request: NextRequest) {
       if (!emp) return badRequest("That employee id does not exist");
     }
 
-    const tempPassword =
-      "plinth-" + Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 6);
+    const tempPassword = generateTempPassword();
 
     const admin = createAdminClient();
     const { data, error } = await admin.auth.admin.createUser({

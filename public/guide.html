@@ -5,55 +5,56 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Plinth — design guide</title>
 <meta name="description" content="How Plinth is built: palette, type, density, vocabulary, the allocation field, and the iteration log." />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%233e5c48'/%3E%3Cpath d='M8 24V9h9a5 5 0 0 1 0 10h-5v5z' fill='%23fbfaf6'/%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%230f68ea'/%3E%3Cpath d='M8 24V9h9a5 5 0 0 1 0 10h-5v5z' fill='%23ffffff'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bone:#f2efe7; --chalk:#fbfaf6; --ink:#232720; --fieldgray:#5d6355;
-    --moss:#3e5c48; --ember:#b4653c; --line:#ddd9cc; --line-strong:#c8c3b2;
-    --ok-t:#2f6440; --ok-b:#e3ede3; --warn-t:#8a5a18; --warn-b:#f4e9d2;
-    --bad-t:#9a3c28; --bad-b:#f6e1d9; --info-t:#33607b; --info-b:#e0eaf0;
-    --mut-t:#5d6355; --mut-b:#ebe9e0;
+    --white:#fff; --mist:#f0f2f4; --fog:#e5e6e8; --ink:#1d1d1f; --muted:#55585f;
+    --signal:#0f68ea; --highlight:#ffcb00; --navy:#000a3b;
+    --ok-t:#1b6b3a; --ok-b:#e6f4ea; --warn-t:#6b5200; --warn-b:#fff4c2;
+    --bad-t:#b3261e; --bad-b:#fdeceb; --info-t:#0b52bd; --info-b:#e8f0fd;
+    --mut-t:#5b5f68; --mut-b:#f0f2f4;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bone); color:var(--ink); font:15px/1.65 "Public Sans",sans-serif; }
-  .mono { font-family:"Spline Sans Mono",monospace; font-variant-numeric:tabular-nums; }
-  header.hero { background:#20241d; color:#f4f1ea; padding:72px 24px 64px; }
+  body { background:var(--white); color:var(--ink); font:16px/1.6 "Inter",system-ui,sans-serif; letter-spacing:-.011em; font-feature-settings:"cv11","ss01"; }
+  .mono { font-family:ui-monospace,Consolas,monospace; font-variant-numeric:tabular-nums; }
+  header.hero { background:var(--navy); color:var(--white); padding:80px 24px 72px; }
   .wrap { max-width:880px; margin:0 auto; padding:0 24px; }
   header .wrap { padding:0; }
-  header h1 { font-family:"Bricolage Grotesque"; font-size:clamp(48px,8vw,84px); line-height:1; }
-  header p.tag { color:rgba(244,241,234,.75); margin-top:16px; max-width:56ch; }
-  header .mono { color:rgba(244,241,234,.55); font-size:12px; letter-spacing:.14em; display:block; margin-bottom:24px; }
-  header a { color:#8fb99b; }
-  main { padding:56px 0 96px; }
-  section { margin-bottom:64px; }
-  h2 { font-family:"Bricolage Grotesque"; font-size:28px; margin-bottom:8px; }
-  h3 { font-family:"Bricolage Grotesque"; font-size:17px; margin:28px 0 8px; }
-  section > p, section li { color:#3a3f35; max-width:72ch; }
+  header h1 { font-size:clamp(48px,9vw,96px); line-height:.95; letter-spacing:-.06em; }
+  header p.tag { color:rgba(255,255,255,.8); margin-top:20px; max-width:56ch; font-size:18px; }
+  header .mono { color:var(--highlight); font-size:12px; letter-spacing:.14em; display:block; margin-bottom:24px; }
+  header a { color:var(--white); text-decoration:underline; }
+  main { padding:64px 0 96px; }
+  section { margin-bottom:80px; }
+  h2 { font-size:34px; margin-bottom:10px; letter-spacing:-.04em; line-height:1.1; }
+  h3 { font-size:19px; margin:32px 0 8px; letter-spacing:-.03em; }
+  section > p, section li { color:#3a3d44; max-width:72ch; }
   section > p + p { margin-top:10px; }
-  .rule { color:var(--fieldgray); font-size:13px; margin-bottom:24px; }
-  table { border-collapse:collapse; width:100%; background:var(--chalk); border:1px solid var(--line); border-radius:6px; overflow:hidden; font-size:13.5px; }
-  th, td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
-  th { background:var(--bone); font-size:12px; color:var(--fieldgray); }
+  .rule { color:var(--muted); font-size:14.5px; margin-bottom:24px; }
+  table { border-collapse:separate; border-spacing:0; width:100%; background:var(--white); border:1px solid var(--fog); border-radius:18px; overflow:hidden; font-size:14.5px; }
+  th, td { text-align:left; padding:12px 16px; border-bottom:1px solid var(--fog); vertical-align:top; }
+  th { background:var(--mist); font-size:12.5px; color:var(--muted); }
   tr:last-child td { border-bottom:0; }
-  .swatch { display:inline-block; width:14px; height:14px; border-radius:4px; vertical-align:-2px; margin-right:8px; border:1px solid rgba(0,0,0,.12); }
-  .chip { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:500; padding:2px 8px; border-radius:999px; white-space:nowrap; }
+  .swatch { display:inline-block; width:16px; height:16px; border-radius:50%; vertical-align:-3px; margin-right:8px; border:1px solid rgba(0,0,0,.12); }
+  .chip { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:500; padding:3px 10px; border-radius:100px; white-space:nowrap; }
   .chip svg { width:8px; height:8px; }
-  code { font-family:"Spline Sans Mono",monospace; font-size:.9em; background:var(--chalk); border:1px solid var(--line); border-radius:4px; padding:1px 5px; }
+  code { font-family:ui-monospace,Consolas,monospace; font-size:.9em; background:var(--mist); border-radius:8px; padding:1px 7px; }
   ul, ol { padding-left:22px; }
   li { margin-bottom:6px; }
+  a { color:#007aff; }
   .glossary dt { font-weight:600; margin-top:14px; }
-  .glossary dd { color:#3a3f35; max-width:70ch; }
-  .log { border-left:3px solid var(--ember); background:var(--chalk); border-radius:0 6px 6px 0; padding:14px 18px; margin-bottom:12px; }
+  .glossary dd { color:#3a3d44; max-width:70ch; }
+  .log { background:var(--mist); border-radius:18px; padding:16px 20px; margin-bottom:12px; }
   .log b { display:block; }
-  .log span { color:var(--fieldgray); font-size:13.5px; }
-  .type-demo { background:var(--chalk); border:1px solid var(--line); border-radius:6px; padding:20px 24px; margin-top:10px; }
-  .type-demo .d1 { font-family:"Bricolage Grotesque"; font-weight:700; font-size:30px; }
-  .type-demo .d2 { font-size:14px; margin-top:4px; }
-  .type-demo .d3 { font-family:"Spline Sans Mono"; font-size:13px; color:var(--fieldgray); margin-top:6px; }
-  footer { border-top:1px solid var(--line); padding:24px; text-align:center; color:var(--fieldgray); font-size:13px; }
+  .log span { color:var(--muted); font-size:14.5px; }
+  .type-demo { background:var(--mist); border-radius:28.8px; padding:28px; margin-top:10px; }
+  .type-demo .d1 { font-weight:700; font-size:43px; letter-spacing:-.05em; line-height:1.1; }
+  .type-demo .d2 { font-size:16px; margin-top:8px; }
+  .type-demo .d3 { font-family:ui-monospace,Consolas,monospace; font-size:13px; color:var(--muted); margin-top:8px; }
+  footer { border-top:1px solid var(--fog); padding:24px; text-align:center; color:var(--muted); font-size:13px; }
 </style>
 </head>
 <body>
@@ -86,39 +87,41 @@
 
 <section>
   <h2>Palette</h2>
-  <p class="rule">Field-office, not SaaS. No pure black or white — every neutral is warmed toward the green of the brand. The banned looks (default framework palettes, purple-on-dark gradients, hi-vis orange on charcoal) never appear.</p>
+  <p class="rule">Planpoint: a blueprint on a white drafting table &mdash; near-monochrome, one blue pen, one yellow highlighter. Source: <a href="https://styles.refero.design/style/fc96be71-d71b-4fc1-a041-f13b3eae7dd5">Refero &middot; Planpoint</a>. Never #000 for text; never gradients.</p>
   <table>
     <tr><th>Name</th><th>Hex</th><th>Used for</th></tr>
-    <tr><td><span class="swatch" style="background:#f2efe7"></span>Bone</td><td class="mono">#F2EFE7</td><td>App background — warm paper</td></tr>
-    <tr><td><span class="swatch" style="background:#fbfaf6"></span>Chalk</td><td class="mono">#FBFAF6</td><td>Raised surfaces: cards, table bodies, inputs</td></tr>
-    <tr><td><span class="swatch" style="background:#232720"></span>Ink</td><td class="mono">#232720</td><td>Primary text (warmed green-black) — 13.2:1 on Chalk</td></tr>
-    <tr><td><span class="swatch" style="background:#5d6355"></span>Fieldgray</td><td class="mono">#5D6355</td><td>Secondary text, labels — 5.9:1 on Chalk</td></tr>
-    <tr><td><span class="swatch" style="background:#3e5c48"></span>Moss</td><td class="mono">#3E5C48</td><td>Brand: primary buttons, active nav — 7.1:1 on Chalk</td></tr>
-    <tr><td><span class="swatch" style="background:#b4653c"></span>Ember</td><td class="mono">#B4653C</td><td>The single accent, reserved for attention. Never decoration.</td></tr>
+    <tr><td><span class="swatch" style="background:#ffffff"></span>White</td><td class="mono">#FFFFFF</td><td>Canvas, cards, inputs</td></tr>
+    <tr><td><span class="swatch" style="background:#f0f2f4"></span>Mist</td><td class="mono">#F0F2F4</td><td>Elevated surfaces, table heads, hover and inactive fills</td></tr>
+    <tr><td><span class="swatch" style="background:#e5e6e8"></span>Fog</td><td class="mono">#E5E6E8</td><td>Hairline borders and dividers</td></tr>
+    <tr><td><span class="swatch" style="background:#1d1d1f"></span>Ink</td><td class="mono">#1D1D1F</td><td>All text and icon strokes &mdash; 16.8:1 on White</td></tr>
+    <tr><td><span class="swatch" style="background:#0f68ea"></span>Signal Blue</td><td class="mono">#0F68EA</td><td>The action colour: primary buttons, active nav, focus. Never body text or a card fill.</td></tr>
+    <tr><td><span class="swatch" style="background:#007aff"></span>Link Blue</td><td class="mono">#007AFF</td><td>Inline text links</td></tr>
+    <tr><td><span class="swatch" style="background:#ffcb00"></span>Highlight</td><td class="mono">#FFCB00</td><td>Novelty badges and warning tints &mdash; punctuation, never surface fill</td></tr>
+    <tr><td><span class="swatch" style="background:#000a3b"></span>Deep Navy</td><td class="mono">#000A3B</td><td>Rare dark feature surface: toasts, bulk bar, closing CTA</td></tr>
   </table>
   <h3>Semantic layer — derived, not bolted on</h3>
-  <p>Each status colour is the same earth family desaturated onto a tint, and no status is
+  <p>Status colours are a functional exception to the bichromatic rule &mdash; kept muted and on pale tints &mdash; and no status is
   carried by colour alone: every chip pairs a <b>glyph shape</b> with a text label, so the row
   reads correctly at 12&nbsp;px in a dense table and for colour-blind users.</p>
   <table>
     <tr><th>Semantic</th><th>Text / tint</th><th>Glyph</th><th>Example</th></tr>
-    <tr><td>Success</td><td class="mono">#2F6440 / #E3EDE3</td><td>filled dot</td><td><span class="chip" style="background:var(--ok-b);color:var(--ok-t)"><svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.4" fill="currentColor"/></svg>Allocated</span></td></tr>
-    <tr><td>Warning</td><td class="mono">#8A5A18 / #F4E9D2</td><td>triangle</td><td><span class="chip" style="background:var(--warn-b);color:var(--warn-t)"><svg viewBox="0 0 8 8"><path d="M4 .8 7.6 7H.4L4 .8z" fill="currentColor"/></svg>In workshop</span></td></tr>
-    <tr><td>Danger</td><td class="mono">#9A3C28 / #F6E1D9</td><td>square</td><td><span class="chip" style="background:var(--bad-b);color:var(--bad-t)"><svg viewBox="0 0 8 8"><rect x=".8" y=".8" width="6.4" height="6.4" fill="currentColor"/></svg>Overdue</span></td></tr>
-    <tr><td>Info</td><td class="mono">#33607B / #E0EAF0</td><td>ring</td><td><span class="chip" style="background:var(--info-b);color:var(--info-t)"><svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="2.8" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>Pending</span></td></tr>
-    <tr><td>Neutral</td><td class="mono">#5D6355 / #EBE9E0</td><td>open dot</td><td><span class="chip" style="background:var(--mut-b);color:var(--mut-t)"><svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="2.2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Completed</span></td></tr>
+    <tr><td>Success</td><td class="mono">#1B6B3A / #E6F4EA</td><td>filled dot</td><td><span class="chip" style="background:var(--ok-b);color:var(--ok-t)"><svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.4" fill="currentColor"/></svg>Allocated</span></td></tr>
+    <tr><td>Warning</td><td class="mono">#6B5200 / #FFF4C2</td><td>triangle</td><td><span class="chip" style="background:var(--warn-b);color:var(--warn-t)"><svg viewBox="0 0 8 8"><path d="M4 .8 7.6 7H.4L4 .8z" fill="currentColor"/></svg>In workshop</span></td></tr>
+    <tr><td>Danger</td><td class="mono">#B3261E / #FDECEB</td><td>square</td><td><span class="chip" style="background:var(--bad-b);color:var(--bad-t)"><svg viewBox="0 0 8 8"><rect x=".8" y=".8" width="6.4" height="6.4" fill="currentColor"/></svg>Overdue</span></td></tr>
+    <tr><td>Info</td><td class="mono">#0B52BD / #E8F0FD</td><td>ring</td><td><span class="chip" style="background:var(--info-b);color:var(--info-t)"><svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="2.8" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>Pending</span></td></tr>
+    <tr><td>Neutral</td><td class="mono">#5B5F68 / #F0F2F4</td><td>open dot</td><td><span class="chip" style="background:var(--mut-b);color:var(--mut-t)"><svg viewBox="0 0 8 8"><circle cx="4" cy="4" r="2.2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Completed</span></td></tr>
   </table>
 </section>
 
 <section>
   <h2>Type</h2>
-  <p class="rule">Three roles, three faces. In-app display tops out at 2rem — the huge treatment is reserved for the login screen and big empty states, where it earns its size.</p>
+  <p class="rule">One face, many weights. Inter 400-700 with aggressive negative tracking on headings (-0.03 to -0.06em) gives display type its engraved feel; body copy stays near-neutral for legibility. Page titles are 32px, KPI figures 34px. (in-app display tops out at 2rem — the huge treatment is reserved for the login screen and big empty states, where it earns its size.</p>
   <div class="type-demo">
-    <div class="d1">Bricolage Grotesque — display</div>
-    <div class="d2">Public Sans — interface copy, deliberately quiet so the data reads first.</div>
-    <div class="d3">Spline Sans Mono — AST-0132 · JOB-24-011 · ₹28,90,000 · 19 Jul 2026</div>
+    <div class="d1">Inter 700 — display, tight tracking</div>
+    <div class="d2">Inter 400-500 — interface copy, deliberately quiet so the data reads first.</div>
+    <div class="d3">System mono — AST-0132 · JOB-24-011 · ₹28,90,000 · 19 Jul 2026</div>
   </div>
-  <p style="margin-top:12px">The mono face carries every identifier, timestamp, quantity and rupee figure, with
+  <p style="margin-top:12px">The system mono face carries every identifier, timestamp, quantity and rupee figure, with
   <code>font-variant-numeric: tabular-nums</code> mandatory wherever figures stack — amounts in the
   ledger align digit-for-digit.</p>
 </section>
@@ -126,13 +129,13 @@
 <section>
   <h2>Spacing, density, elevation</h2>
   <p>One scale: <span class="mono">4 / 8 / 12 / 16 / 24 / 32 / 48 / 64&nbsp;px</span>. Two densities, toggled in Settings and persisted:
-  <b>Comfortable</b> (default: 40px controls, 44px rows) and <b>Compact</b> (32px controls and rows) for
+  <b>Spacious</b> (default: 44px controls, 52px rows) and <b>Compact</b> (34px controls, 36px rows) for
   ops users who want more register per screen.</p>
   <h3>The elevation rule — never broken</h3>
   <ul>
-    <li><b>Border</b> = static structure: cards at rest, tables, inputs, dividers.</li>
-    <li><b>Background shift</b> = state: hover, selected, active nav, pressed.</li>
-    <li><b>Shadow</b> = floating layers only: menus, modals, toasts. Nothing in the page flow casts a shadow.</li>
+    <li><b>Border (Fog)</b> = static structure: cards at rest, tables, inputs, dividers.</li>
+    <li><b>Mist / Signal tint</b> = state: hover, selected, pressed.</li>
+    <li><b>One shadow</b> &mdash; <code>rgba(0,0,0,.06) 0 8px 48px</code> &mdash; for primary buttons and floating layers. <b>Shape</b>: pills (100px) for buttons, chips and nav; 18px inputs; 28.8px cards.</li>
   </ul>
   <h3>Structure device</h3>
   <p>Navigation labels carry live truth from the store — "Assets · 64 registered · 21 in yard",
@@ -146,7 +149,7 @@
   (<a href="signature-demo.html">signature-demo.html</a>) before any screen existed:</p>
   <ul>
     <li>Every particle is one asset from the live register; job nodes gain visual mass as they absorb assets (radius ∝ √count).</li>
-    <li>Idle assets drift loose and dim; allocated assets lock into slow orbit; workshop assets gather amber along the lower edge.</li>
+    <li>Idle assets drift loose and dim; allocated assets lock into slow orbit; workshop assets gather yellow along the lower edge.</li>
     <li>Every few seconds one real transaction type plays — an allocation, a return, or a job-to-job transfer — traced as a comet arc along a quadratic curve.</li>
     <li>Rendering is plain canvas 2D at devicePixelRatio ≤ 2, a few hundred draw calls per frame; it holds 60fps on a small viewport and disposes itself the moment its canvas leaves the DOM.</li>
   </ul>
@@ -166,7 +169,7 @@
     <li><b>Forms</b> — visible labels, inline validation on blur (never first on submit), helper text, and a submit row that states exactly which fields remain: "To continue, complete: Payee, Amount".</li>
     <li><b>Modals</b> — focus-trapped, Escape closes, focus returns to the opener. Destructive confirms name the consequence and its scale from pre-written copy.</li>
     <li><b>Toasts</b> — polite live region, auto-dismiss, Undo where the action supports it (allocation, return, approval, payment actions restore a pre-action snapshot).</li>
-    <li><b>Skeletons</b> — shimmer placeholders that mirror the final layout's shape, shown on first load of each view.</li>
+    <li><b>Skeletons</b> — flat pulsing placeholders that mirror the final layout's shape, shown on first load of each view.</li>
     <li><b>States</b> — empty, load-error, offline, permission-denied, no-search-results: all designed, all previewable from Settings. Denied renders in place; it is a screen, not a redirect.</li>
     <li><b>Allocation flow</b> — the core transaction: choose job → pick from the yard → review (count, plant value, date, consequences) → confirm, with undo. Fully keyboard-operable end to end.</li>
   </ul>

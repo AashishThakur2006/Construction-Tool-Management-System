@@ -117,9 +117,32 @@ Seed data is internally consistent against a fixed "today" of **19 July 2026**.
 CI (`.github/workflows/ci.yml`) runs the tests, the type check and a production
 build on every push and pull request.
 
+## Security
+
+Defence in depth, all unit-tested (`src/lib/security.test.ts`, `plinth.test.ts`):
+
+- **Headers** (`next.config.ts`): Content-Security-Policy (no framing, no foreign form posts, connections only to this origin and Supabase), `X-Frame-Options`, `nosniff`, referrer and permissions policies, HSTS in production, `no-store` on API responses.
+- **Rate limiting** (`src/lib/security.ts`): login (per IP and per account), sign-up, OAuth start, dev login and `/api/mutate` (per user). In-memory, so per server instance - put a platform firewall in front for real traffic.
+- **CSRF**: every state-changing route rejects requests whose `Origin` is not this host.
+- **Authorisation**: `denyReason` (who may touch which table/column) plus `assertEngineerScope` (which *rows* a Site Engineer's jobs cover, enforced inside the transaction so a violation rolls the batch back).
+- **Input validation**: `valueProblem` checks enums, integers, real dates, id shapes, text length and date ranges and answers with a precise 400; Postgres integrity errors map to 4xx, not 500.
+- **Credentials**: passwords need 8+ characters with a letter and a number; temporary passwords come from `crypto`. Self-service *Owner* sign-up is open in development and closed in production unless `ALLOW_OWNER_SIGNUP=true`.
+- **Output safety**: status chips insert text, never markup; CSV exports neutralise spreadsheet formulas (`= + - @`).
+- **Redirects**: post-login `next` is restricted to same-site paths. The dev login only works on localhost outside production.
+- **Idle sign-out**: the app closes the session after 30 minutes without input (with a one-minute warning).
+
+## Using the app
+
+- **Keyboard**: `/` or `Ctrl+K` search; `g` then `d j a l e m p s` (and `r t` for Owners) to jump between screens; `?` lists them all.
+- **Export**: every list has an *Export CSV* button that downloads exactly the filtered, sorted rows on screen.
+- **Print**: registers, ledgers and job sheets print without the app chrome.
+- **Health check**: `GET /api/health` reports liveness and database reachability for uptime monitors.
+
 ## Design guide
 
-Palette, typography, the interface glossary and an iteration log are in
+The UI follows the Planpoint design system (white canvas, Signal Blue action colour, pill
+buttons, Inter, flat surfaces; source: styles.refero.design). Palette, typography, the interface
+glossary and an iteration log are in
 [`public/guide.html`](public/guide.html) (served at `/guide.html`). The signature
 allocation-field animation is at `/signature-demo.html`.
 

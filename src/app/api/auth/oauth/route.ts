@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Provider } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { limited, safeNext } from "@/lib/security";
 
 const ALLOWED: Provider[] = ["google", "github", "azure"];
 
@@ -16,7 +17,9 @@ const ALLOWED: Provider[] = ["google", "github", "azure"];
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const provider = searchParams.get("provider") as Provider | null;
-  const next = searchParams.get("next") || "/app";
+  const next = safeNext(searchParams.get("next"));
+  const slow = limited(request, "oauth", 20, 60_000);
+  if (slow) return slow;
 
   if (!provider || !ALLOWED.includes(provider)) {
     return NextResponse.redirect(`${origin}/app?authError=Unsupported+provider`);

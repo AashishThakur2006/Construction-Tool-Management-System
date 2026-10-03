@@ -60,7 +60,7 @@ export function render(root, onEntered) {
     const pw = field({
       name: "password", label: "Password", type: "password", required: true,
       autocomplete: "current-password",
-      validate: (v) => v.length < 6 ? "Use at least 6 characters" : null,
+      validate: (v) => v ? null : "Enter your password",
     });
     const submit = submitRow([email, pw], "Enter Plinth", async () => {
       msg.textContent = "Signing in…";
@@ -103,7 +103,7 @@ export function render(root, onEntered) {
     const pw = field({
       name: "password", label: "Password", type: "password", required: true,
       autocomplete: "new-password",
-      validate: (v) => v.length < 6 ? "Use at least 6 characters" : null,
+      validate: (v) => v.length < 8 ? "Use at least 8 characters" : !/[a-zA-Z]/.test(v) || !/[0-9]/.test(v) ? "Include at least one letter and one number" : null,
     });
     const role = field({
       name: "role", label: "Role", type: "select", required: true, value: "SITE_ENGINEER",

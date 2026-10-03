@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isEmail, str } from "@/lib/validation";
+import { limited, originGuard, ownerSignupAllowed, passwordProblem } from "@/lib/security";
 
 export async function POST(request: NextRequest) {
+  const blocked = originGuard(request) ?? limited(request, "register", 5, 10 * 60_000);
+  if (blocked) return blocked;
   const body = await request.json().catch(() => null);
   const name = str(body?.name);
   const email = str(body?.email).toLowerCase();
-  const password = body?.password ?? "";
-  const role = body?.role === "OWNER" ? "OWNER" : "SITE_ENGINEER";
+  const password = typeof body?.password === "string" ? body.password : "";
+  const wantsOwner = body?.role === "OWNER";
+  if (wantsOwner && !ownerSignupAllowed()) {
+    return NextResponse.json(
+      { error: "Owner accounts are created by an existing Owner (Team page). Register as a Site Engineer." },
+      { status: 403 }
+    );
+  }
+  const role = wantsOwner ? "OWNER" : "SITE_ENGINEER";
 
   if (!name || !email || !password) {
     return NextResponse.json(
@@ -18,11 +28,10 @@ export async function POST(request: NextRequest) {
   if (!isEmail(email)) {
     return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
   }
-  if (password.length < 6) {
-    return NextResponse.json(
-      { error: "Password must be at least 6 characters" },
-      { status: 400 }
-    );
+  const weak = passwordProblem(password, email);
+  if (weak) return NextResponse.json({ error: weak }, { status: 400 });
+  if (name.length > 100) {
+    return NextResponse.json({ error: "Name is too long" }, { status: 400 });
   }
 
   const supabase = await createClient();

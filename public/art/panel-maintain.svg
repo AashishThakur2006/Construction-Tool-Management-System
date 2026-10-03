@@ -1,37 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 460" fill="none" font-family="'Public Sans',system-ui,sans-serif">
-  <defs><linearGradient id="pm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1e17"/><stop offset="1" stop-color="#111310"/></linearGradient></defs>
-  <rect x="0.5" y="0.5" width="639" height="459" rx="14" fill="url(#pm)" stroke="#33372b"/>
-  <text x="28" y="44" font-size="15" font-weight="700" fill="#f3f0e4" font-family="'Bricolage Grotesque',sans-serif">MR-161 — Slew ring play above tolerance</text>
-  <text x="28" y="62" font-size="10" fill="#9b9d8b">AST-0112 · CAT 320 Excavator</text>
+  <defs><linearGradient id="pm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f0f2f4"/></linearGradient></defs>
+  <rect x="0.5" y="0.5" width="639" height="459" rx="14" fill="url(#pm)" stroke="#e5e6e8"/>
+  <text x="28" y="44" font-size="15" font-weight="700" fill="#1d1d1f" font-family="Inter,system-ui,sans-serif">MR-161 — Slew ring play above tolerance</text>
+  <text x="28" y="62" font-size="10" fill="#5b5f68">AST-0112 · CAT 320 Excavator</text>
   <!-- pipeline -->
-  <g font-size="9.5" font-family="'Spline Sans Mono',monospace">
-    <rect x="28" y="82" width="96" height="22" rx="11" fill="#242a1e"/><text x="76" y="97" fill="#c9cbbb" text-anchor="middle">Reported</text>
-    <rect x="132" y="82" width="96" height="22" rx="11" fill="#6cc08f"/><text x="180" y="97" fill="#0b1710" text-anchor="middle" font-weight="600">Approved</text>
-    <rect x="236" y="82" width="110" height="22" rx="11" fill="#191c16" stroke="#33372b"/><text x="291" y="97" fill="#6f7263" text-anchor="middle">In workshop</text>
-    <rect x="354" y="82" width="96" height="22" rx="11" fill="#191c16" stroke="#33372b"/><text x="402" y="97" fill="#6f7263" text-anchor="middle">Resolved</text>
+  <g font-size="9.5" font-family="ui-monospace,Consolas,monospace">
+    <rect x="28" y="82" width="96" height="22" rx="11" fill="#f0f2f4"/><text x="76" y="97" fill="#3a3d44" text-anchor="middle">Reported</text>
+    <rect x="132" y="82" width="96" height="22" rx="11" fill="#0f68ea"/><text x="180" y="97" fill="#ffffff" text-anchor="middle" font-weight="600">Approved</text>
+    <rect x="236" y="82" width="110" height="22" rx="11" fill="#ffffff" stroke="#e5e6e8"/><text x="291" y="97" fill="#5b5f68" text-anchor="middle">In workshop</text>
+    <rect x="354" y="82" width="96" height="22" rx="11" fill="#ffffff" stroke="#e5e6e8"/><text x="402" y="97" fill="#5b5f68" text-anchor="middle">Resolved</text>
   </g>
-  <path d="M124 93 H132 M228 93 H236 M346 93 H354" stroke="#2a2f24"/>
+  <path d="M124 93 H132 M228 93 H236 M346 93 H354" stroke="#e5e6e8"/>
   <!-- decision card -->
-  <rect x="28" y="122" width="352" height="150" rx="12" fill="#171a14" stroke="#33372b"/>
-  <text x="48" y="148" font-size="11.5" font-weight="600" fill="#eef0e6">Owner decision</text>
-  <text x="48" y="170" font-size="10" fill="#9b9d8b">Estimated repair · <tspan fill="#eef0e6">₹1,96,000</tspan></text>
-  <text x="48" y="188" font-size="10" fill="#9b9d8b">Reported by Priya Nair · 6 d ago</text>
-  <rect x="48" y="206" width="120" height="30" rx="15" fill="#6cc08f"/><text x="108" y="225" font-size="10.5" fill="#0b1710" text-anchor="middle" font-weight="600">Send to workshop</text>
-  <rect x="180" y="206" width="80" height="30" rx="15" fill="#3a2018" stroke="#7a3b2b"/><text x="220" y="225" font-size="10.5" fill="#e0784f" text-anchor="middle">Reject</text>
+  <rect x="28" y="122" width="352" height="150" rx="12" fill="#ffffff" stroke="#e5e6e8"/>
+  <text x="48" y="148" font-size="11.5" font-weight="600" fill="#1d1d1f">Owner decision</text>
+  <text x="48" y="170" font-size="10" fill="#5b5f68">Estimated repair · <tspan fill="#1d1d1f">₹1,96,000</tspan></text>
+  <text x="48" y="188" font-size="10" fill="#5b5f68">Reported by Priya Nair · 6 d ago</text>
+  <rect x="48" y="206" width="120" height="30" rx="15" fill="#0f68ea"/><text x="108" y="225" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="600">Send to workshop</text>
+  <rect x="180" y="206" width="80" height="30" rx="15" fill="#fdeceb" stroke="#b3261e"/><text x="220" y="225" font-size="10.5" fill="#e0a800" text-anchor="middle">Reject</text>
   <!-- progress timeline -->
-  <rect x="396" y="122" width="216" height="150" rx="12" fill="#171a14" stroke="#33372b"/>
-  <text x="416" y="148" font-size="11.5" font-weight="600" fill="#eef0e6">Progress</text>
-  <g font-size="9.5" fill="#9b9d8b">
-    <circle cx="422" cy="170" r="3" fill="#6cc08f"/><text x="434" y="174">13 Jul — Reported by Priya</text>
-    <circle cx="422" cy="192" r="3" fill="#6cc08f"/><text x="434" y="196">16 Jul — Spend approved</text>
-    <circle cx="422" cy="214" r="3" fill="#4b4f42"/><text x="434" y="218" fill="#6f7263">— Workshop intake</text>
-    <circle cx="422" cy="236" r="3" fill="#4b4f42"/><text x="434" y="240" fill="#6f7263">— Resolved to yard</text>
+  <rect x="396" y="122" width="216" height="150" rx="12" fill="#ffffff" stroke="#e5e6e8"/>
+  <text x="416" y="148" font-size="11.5" font-weight="600" fill="#1d1d1f">Progress</text>
+  <g font-size="9.5" fill="#5b5f68">
+    <circle cx="422" cy="170" r="3" fill="#0f68ea"/><text x="434" y="174">13 Jul — Reported by Priya</text>
+    <circle cx="422" cy="192" r="3" fill="#0f68ea"/><text x="434" y="196">16 Jul — Spend approved</text>
+    <circle cx="422" cy="214" r="3" fill="#c9ccd1"/><text x="434" y="218" fill="#5b5f68">— Workshop intake</text>
+    <circle cx="422" cy="236" r="3" fill="#c9ccd1"/><text x="434" y="240" fill="#5b5f68">— Resolved to yard</text>
   </g>
   <!-- machine status sync note -->
-  <rect x="28" y="288" width="584" height="52" rx="10" fill="#12140f" stroke="#2a2f24"/>
-  <circle cx="52" cy="314" r="10" fill="#3a2a1e"/><path d="M48 314 h8 M52 310 v8" stroke="#e0a07f" stroke-width="1.6"/>
-  <text x="74" y="310" font-size="10.5" fill="#eef0e6" font-weight="600">AST-0112 moves to In workshop on intake</text>
-  <text x="74" y="326" font-size="9.5" fill="#9b9d8b">Its allocation to JOB-24-011 is closed automatically. Machine status stays in sync.</text>
-  <path d="M28 360 H612" stroke="#262a20"/>
-  <text x="28" y="392" font-size="9.5" fill="#6f7263" font-family="'Spline Sans Mono',monospace">EXPOSURE THIS QUARTER  ₹16.7 L across 9 open requests</text>
+  <rect x="28" y="288" width="584" height="52" rx="10" fill="#f0f2f4" stroke="#e5e6e8"/>
+  <circle cx="52" cy="314" r="10" fill="#fff4c2"/><path d="M48 314 h8 M52 310 v8" stroke="#b3261e" stroke-width="1.6"/>
+  <text x="74" y="310" font-size="10.5" fill="#1d1d1f" font-weight="600">AST-0112 moves to In workshop on intake</text>
+  <text x="74" y="326" font-size="9.5" fill="#5b5f68">Its allocation to JOB-24-011 is closed automatically. Machine status stays in sync.</text>
+  <path d="M28 360 H612" stroke="#f0f2f4"/>
+  <text x="28" y="392" font-size="9.5" fill="#5b5f68" font-family="ui-monospace,Consolas,monospace">EXPOSURE THIS QUARTER  ₹16.7 L across 9 open requests</text>
 </svg>

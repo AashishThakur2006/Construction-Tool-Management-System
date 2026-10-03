@@ -1,4 +1,5 @@
 /* PLINTH — jobs list and job detail. */
+import { exportButton } from "../csv.js";
 import * as store from "../store.js";
 import { h, fmt, table, sortRows, statusChip, stateBlock, skelTable, pageHead, confirmDialog, toast, openModal, field, submitRow } from "../ui.js";
 import { deniedBlock } from "./misc.js";
@@ -96,6 +97,7 @@ function paint(container) {
       store.isOwner() && h("select", { "aria-label": "Filter by engineer", onchange: (e) => { state.engineer = e.target.value; rerender(); } },
         h("option", { value: "" }, "Any engineer"),
         engineers.map((e) => h("option", { value: e.id, selected: state.engineer === e.id }, e.name))),
+      exportButton("jobs", cols, rows),
       h("span.count", {}, `${rows.length} of ${all.length} jobs`)),
     rows.length
       ? h("div.card", {}, table({

@@ -1,6 +1,6 @@
 /* PLINTH — app shell and hash router. */
 import * as store from "./store.js";
-import { h, icon, fmt, toast, modalIsOpen } from "./ui.js";
+import { h, icon, fmt, toast, modalIsOpen, openModal } from "./ui.js";
 import * as login from "./views/login.js";
 import * as dashboard from "./views/dashboard.js";
 import * as jobs from "./views/jobs.js";
@@ -93,6 +93,7 @@ function buildShell() {
   viewEl = h("main.view", { id: "view", tabindex: "-1" });
 
   const shell = h("div.app", {},
+    h("a.skip-link", { href: "#view", onclick: (e) => { e.preventDefault(); viewEl.focus(); } }, "Skip to content"),
     sidebarEl, sidebarScrim,
     h("div.main-col", {},
       h("header.topbar", {},
@@ -195,14 +196,80 @@ store.onChange(() => {
   if (store.sessionRole() && viewEl) render();
 });
 
+/* ---------------- keyboard shortcuts ---------------- */
+const GO = {
+  d: "dashboard", j: "jobs", a: "assets", l: "allocate",
+  e: "employees", m: "maintenance", p: "payments", s: "settings",
+};
+const GO_OWNER = { r: "reports", t: "team" };
+let goPending = 0;
+
+function shortcutHelp() {
+  const rows = [
+    ["/ or Ctrl+K", "Search everything"],
+    ["g then d", "Dashboard"], ["g then j", "Jobs"], ["g then a", "Assets"],
+    ["g then l", "Allocate"], ["g then e", "Employees"], ["g then m", "Maintenance"],
+    ["g then p", "Payments"], ["g then s", "Settings"],
+    ...(store.isOwner() ? [["g then r", "Reports"], ["g then t", "Team"]] : []),
+    ["?", "Show this list"], ["Esc", "Close a dialog or the menu"],
+  ];
+  openModal({
+    title: "Keyboard shortcuts",
+    content: h("dl.meta-list", {}, rows.flatMap(([k, d]) => [h("dt", {}, d), h("dd.mono", {}, k)])),
+  });
+}
+
+function typing(t) { return t && t.closest && t.closest("input, textarea, select, [contenteditable]"); }
+
 document.addEventListener("keydown", (e) => {
-  if (e.key === "/" && !modalIsOpen() && !e.target.closest("input, textarea, select") && searchInput) {
+  if (!store.sessionRole()) return;
+  if ((e.key === "/" || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k")) && !modalIsOpen() && (e.key !== "/" || !typing(e.target)) && searchInput) {
     e.preventDefault();
     searchInput.focus();
     searchInput.select();
+    return;
   }
   if (e.key === "Escape" && sidebarEl?.classList.contains("open")) toggleSidebar(false);
+  if (e.ctrlKey || e.metaKey || e.altKey || typing(e.target) || modalIsOpen()) return;
+  if (e.key === "?") { e.preventDefault(); shortcutHelp(); return; }
+  if (goPending && Date.now() - goPending < 1500) {
+    const dest = GO[e.key] || (store.isOwner() ? GO_OWNER[e.key] : null);
+    goPending = 0;
+    if (dest) { e.preventDefault(); navigate("/" + dest); }
+    return;
+  }
+  goPending = e.key === "g" ? Date.now() : 0;
 });
+
+/* ---------------- idle sign-out ----------------
+   Site-office machines are shared and left unattended. After IDLE_MS with no
+   input the session is closed; a toast gives a minute's warning first. */
+const IDLE_MS = 30 * 60 * 1000;
+const IDLE_WARN_MS = 60 * 1000;
+let idleWarn = 0, idleOut = 0;
+
+function resetIdle() {
+  clearTimeout(idleWarn); clearTimeout(idleOut);
+  if (!store.sessionRole()) { idleWarn = idleOut = 0; return; }
+  idleWarn = setTimeout(() => {
+    if (store.sessionRole()) toast("You'll be signed out in a minute due to inactivity. Move the mouse or press a key to stay.");
+  }, IDLE_MS - IDLE_WARN_MS);
+  idleOut = setTimeout(async () => {
+    idleOut = 0;
+    if (!store.sessionRole()) return;
+    await store.logout();
+    sidebarEl = navEl = viewEl = null;
+    render();
+    toast("Signed out after 30 minutes of inactivity.");
+  }, IDLE_MS);
+}
+let lastIdleTick = 0;
+["pointerdown", "keydown", "scroll", "touchstart"].forEach((evt) =>
+  window.addEventListener(evt, () => {
+    const now = Date.now();
+    if (now - lastIdleTick > 5000) { lastIdleTick = now; resetIdle(); } // throttle: re-arm at most every 5s
+  }, { passive: true, capture: true }));
+store.onChange(() => { if (store.sessionRole() && !idleOut) resetIdle(); });
 
 /* The offline bar is driven purely by whether our own API requests complete
    (store.online), never by navigator.onLine — which misreports on some

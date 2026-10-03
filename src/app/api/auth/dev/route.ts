@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSSRClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import sql from "@/lib/db";
+import { isLocalHost, limited, originGuard } from "@/lib/security";
 
 type Kind = "owner" | "engineer";
 
@@ -27,9 +28,12 @@ const DEV_PASSWORD = "demo1234";
 
 // Development-only login bypass. Disabled in production builds.
 export async function POST(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
+  const host = request.headers.get("host");
+  if (process.env.NODE_ENV === "production" || !isLocalHost(host)) {
     return NextResponse.json({ error: "Not available" }, { status: 404 });
   }
+  const blocked = originGuard(request) ?? limited(request, "dev-login", 20, 60_000);
+  if (blocked) return blocked;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) {
     return NextResponse.json(

@@ -2,22 +2,9 @@
 import * as store from "../store.js";
 import { h, fmt, pageHead, toast } from "../ui.js";
 import { deniedBlock } from "./misc.js";
+import { downloadCsv } from "../csv.js";
 
-function csvDownload(name, headers, rows) {
-  const esc = (v) => {
-    const s = v == null ? "" : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const body = [headers.join(","), ...rows.map((r) => r.map(esc).join(","))].join("\n");
-  const blob = new Blob([body], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = h("a", { href: url, download: name });
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  toast(`${name} downloaded (${rows.length} rows).`);
-}
+const csvDownload = downloadCsv;
 
 function bar(label, value, max, right) {
   return h("a.rowline", { style: "cursor:default" },

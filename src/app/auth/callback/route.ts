@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/security";
 
 /**
  * OAuth (and magic-link) callback. Supabase redirects here with a `code`;
@@ -8,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") || "/app";
+  const next = safeNext(searchParams.get("next"));
   const oauthError = searchParams.get("error_description") || searchParams.get("error");
 
   if (oauthError) {
@@ -24,6 +25,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/app?authError=${encodeURIComponent(error.message)}`);
   }
 
-  const dest = next.startsWith("/") ? next : "/app";
-  return NextResponse.redirect(`${origin}${dest}`);
+  return NextResponse.redirect(`${origin}${next}`);
 }

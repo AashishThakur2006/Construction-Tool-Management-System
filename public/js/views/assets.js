@@ -1,4 +1,5 @@
 /* PLINTH — asset register (densest table) and asset detail. */
+import { exportButton } from "../csv.js";
 import * as store from "../store.js";
 import {
   h, fmt, icon, table, sortRows, statusChip, condBadge, stateBlock,
@@ -181,6 +182,7 @@ function paint(container) {
       h("select", { "aria-label": "Filter by condition", onchange: (e) => { state.cond = e.target.value; rerender(); } },
         h("option", { value: "" }, "Any condition"),
         ["A", "B", "C", "D"].map((c) => h("option", { value: c, selected: state.cond === c }, "Condition " + c))),
+      exportButton("assets", cols, rows),
       h("span.count", {}, `${rows.length} of ${all.length}`)),
     bulkbar || "",
     rows.length

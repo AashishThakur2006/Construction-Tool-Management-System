@@ -87,8 +87,11 @@ const glyphs = {
 };
 export function chip(kind, label) {
   const tpl = document.createElement("template");
-  tpl.innerHTML = `<span class="chip chip-${kind}"><svg viewBox="0 0 8 8" aria-hidden="true">${glyphs[kind]}</svg>${label}</span>`;
-  return tpl.content.firstChild;
+  // label is data (statuses come from the database): insert as text, never markup
+  tpl.innerHTML = `<span class="chip chip-${glyphs[kind] ? kind : "mut"}"><svg viewBox="0 0 8 8" aria-hidden="true">${glyphs[kind] || glyphs.mut}</svg></span>`;
+  const el = tpl.content.firstChild;
+  el.append(document.createTextNode(label == null ? "" : String(label)));
+  return el;
 }
 const statusKinds = {
   asset: { Allocated: "ok", "In yard": "info", "In workshop": "warn", Retired: "mut" },

@@ -14,15 +14,15 @@
 */
 
 const COLORS = {
-  field: "#20241d",
-  grid: "rgba(244, 241, 234, 0.05)",
-  idle: "rgba(244, 241, 234, 0.34)",
-  allocated: "#8fb99b",
-  workshop: "#c9944a",
-  node: "rgba(143, 185, 155, 0.16)",
-  nodeRing: "rgba(143, 185, 155, 0.55)",
-  comet: "#d8c8a8",
-  label: "rgba(244, 241, 234, 0.55)",
+  field: "#f0f2f4",
+  grid: "rgba(29, 29, 31, 0.06)",
+  idle: "rgba(29, 29, 31, 0.32)",
+  allocated: "#0f68ea",
+  workshop: "#e0a800",
+  node: "rgba(15, 104, 234, 0.1)",
+  nodeRing: "rgba(15, 104, 234, 0.55)",
+  comet: "#1d1d1f",
+  label: "rgba(29, 29, 31, 0.6)",
 };
 
 function mulberry32(seed) {
@@ -141,11 +141,7 @@ export function createField(canvas, opts = {}) {
     if (mode === "empty") {
       // real emptiness: a single slow scan line, nothing else
       const sx = ((t * 0.02) % (W + 200)) - 100;
-      const g = ctx.createLinearGradient(sx - 60, 0, sx + 60, 0);
-      g.addColorStop(0, "rgba(143,185,155,0)");
-      g.addColorStop(0.5, "rgba(143,185,155,0.1)");
-      g.addColorStop(1, "rgba(143,185,155,0)");
-      ctx.fillStyle = g;
+      ctx.fillStyle = "rgba(15, 104, 234, 0.07)";
       ctx.fillRect(sx - 60, 0, 120, H);
       return;
     }
@@ -165,7 +161,7 @@ export function createField(canvas, opts = {}) {
       ctx.stroke();
       if (opts.labels && mode !== "hero") {
         ctx.fillStyle = COLORS.label;
-        ctx.font = "10px 'Spline Sans Mono', monospace";
+        ctx.font = "10px ui-monospace, Consolas, monospace";
         ctx.textAlign = "center";
         ctx.fillText(n.job.code || n.job.name, n.x, n.y + n.shownR + 14);
       }

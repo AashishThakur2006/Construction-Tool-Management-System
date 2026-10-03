@@ -38,7 +38,7 @@ export default function HomePage() {
       {/* ---------------- hero ---------------- */}
       <section className="hero section">
         <div className="wrap hero__inner">
-          <span className="eyebrow reveal">plant register</span>
+          <span className="eyebrow reveal">New · plant register for construction</span>
           <h1 className="reveal d1">
             Every job, asset and rupee <span className="dim">on one register.</span>
           </h1>
@@ -53,10 +53,13 @@ export default function HomePage() {
           </div>
           <p className="hero__note reveal d3">no card · seeded demo register included</p>
 
+        </div>
+        <div className="band">
+          <div className="wrap">
           <div className="frame reveal d4">
-            <span className="frame__glow" aria-hidden="true" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/art/app-dashboard.svg" alt="The Plinth dashboard: fleet utilisation, committed spend, overdue payments and maintenance exposure" width={1000} height={643} />
+          </div>
           </div>
         </div>
       </section>
@@ -64,12 +67,14 @@ export default function HomePage() {
       {/* ---------------- trust ---------------- */}
       <section className="section--flush">
         <div className="wrap trust reveal">
-          <span className="trust__label">Built for yards like</span>
+          <span className="trust__label">Built for the yards that keep construction moving.</span>
+          <div className="trust__row">
           <span className="trust__logo">Panchshil Industrial</span>
           <span className="trust__logo">Bharat Forge</span>
           <span className="trust__logo">L&amp;T Transportation</span>
           <span className="trust__logo">Godrej Constructions</span>
           <span className="trust__logo">NCC Ltd</span>
+          </div>
         </div>
       </section>
 
@@ -205,7 +210,7 @@ export default function HomePage() {
             <h2 className="reveal d1">Priced per yard, not per asset</h2>
             <p className="lede reveal d2">
               Start on the demo for free. Move to your own register when you&apos;re
-              ready. <a href="/pricing" style={{ color: "var(--accent)" }}>Full pricing →</a>
+              ready. <a href="/pricing" className="link">Full pricing →</a>
             </p>
           </div>
           <div className="price-grid">

@@ -1,4 +1,5 @@
 /* PLINTH — payment ledger and detail. Financials are role-scoped. */
+import { exportButton } from "../csv.js";
 import * as store from "../store.js";
 import {
   h, fmt, table, sortRows, statusChip, stateBlock, skelTable, skelDetail,
@@ -69,6 +70,7 @@ function paint(container) {
       h("select", { "aria-label": "Filter by job", onchange: (e) => { state.jobId = e.target.value; rerender(); } },
         h("option", { value: "" }, "Any job"),
         jobsWithPays.map((jid) => h("option", { value: jid, selected: state.jobId === jid }, jid))),
+      exportButton("payments", cols, rows),
       h("span.count", {}, `${rows.length} of ${all.length} entries`)),
     rows.length
       ? h("div.card", {}, table({

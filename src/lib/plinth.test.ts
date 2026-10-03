@@ -63,3 +63,26 @@ describe("denyReason — Site Engineer", () => {
     deny({ t: "employee", insert: { id: "E-9", name: "New" } }, "SITE_ENGINEER");
   });
 });
+
+import { valueProblem } from "./plinth";
+
+describe("valueProblem", () => {
+  it("accepts sane values", () => {
+    expect(valueProblem({ t: "asset", id: "AST-0112", set: { status: "Allocated", value: 2890000, condition: "B", allocated_on: "2026-07-19" } })).toBeNull();
+    expect(valueProblem({ t: "mr", insert: { id: "MR-1", fault: "Hydraulic leak", status: "Reported", overdue: false } })).toBeNull();
+    expect(valueProblem({ t: "asset", id: "AST-1", set: { job_id: null } })).toBeNull();
+  });
+  it("rejects bad enums, numbers, dates, ids and long text", () => {
+    expect(valueProblem({ t: "asset", id: "AST-1", set: { status: "Exploded" } })).toMatch(/not a valid status/);
+    expect(valueProblem({ t: "asset", id: "AST-1", set: { value: -5 } })).toMatch(/whole number/);
+    expect(valueProblem({ t: "asset", id: "AST-1", set: { value: 1.5 } })).toMatch(/whole number/);
+    expect(valueProblem({ t: "asset", id: "AST-1", set: { value: "9" } })).toMatch(/whole number/);
+    expect(valueProblem({ t: "payment", id: "INV-1", set: { due: "2026-02-31" } })).toMatch(/real date/);
+    expect(valueProblem({ t: "asset", id: "x; DROP TABLE assets", set: {} })).toMatch(/Malformed/);
+    expect(valueProblem({ t: "job", insert: { id: "J-1", name: "x".repeat(2001) } })).toMatch(/too long/);
+  });
+  it("rejects date ranges that run backwards", () => {
+    expect(valueProblem({ t: "job", insert: { id: "J-1", started: "2026-05-01", ends: "2026-04-01" } })).toMatch(/end before/);
+    expect(valueProblem({ t: "payment", insert: { id: "I-1", issued: "2026-05-01", due: "2026-04-01" } })).toMatch(/due before/);
+  });
+});

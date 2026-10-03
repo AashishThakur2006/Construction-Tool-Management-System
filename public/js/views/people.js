@@ -1,4 +1,5 @@
 /* PLINTH — employees list and detail. */
+import { exportButton } from "../csv.js";
 import * as store from "../store.js";
 import {
   h, fmt, table, sortRows, statusChip, stateBlock, skelTable, skelDetail,
@@ -60,6 +61,7 @@ function paint(container) {
       h("select", { "aria-label": "Filter by role", onchange: (e) => { state.role = e.target.value; rerender(); } },
         h("option", { value: "" }, "Any role"),
         roles.map((r) => h("option", { value: r, selected: state.role === r }, r))),
+      exportButton("employees", cols, rows),
       h("span.count", {}, `${rows.length} of ${all.length}`)),
     rows.length
       ? h("div.card", {}, table({
