@@ -121,6 +121,11 @@ export function safeNext(next: string | null | undefined, fallback = "/app"): st
 
 export function isLocalHost(host: string | null): boolean {
   if (!host) return false;
-  const h = host.split(":")[0].toLowerCase();
-  return h === "localhost" || h === "127.0.0.1" || h === "[::1]" || h.endsWith(".localhost");
+  const m = /^(\[[^\]]+\]|[^:]+)(?::\d+)?$/.exec(host.trim().toLowerCase());
+  if (!m) return false;
+  const h = m[1];
+  if (h === "localhost" || h === "127.0.0.1" || h === "[::1]" || h.endsWith(".localhost")) return true;
+  // private-network addresses (opening the dev server from a LAN IP or phone);
+  // the dev login that uses this is already disabled in production builds
+  return /^(10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(h);
 }

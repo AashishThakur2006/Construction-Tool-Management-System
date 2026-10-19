@@ -1,22 +1,18 @@
 /* PLINTH — maintenance queue with status pipeline, and request detail. */
 import * as store from "../store.js";
-import {
-  h, fmt, table, sortRows, statusChip, stateBlock, skelTable, skelDetail,
-  pageHead, toast, confirmDialog, openModal, field, submitRow,
-} from "../ui.js";
+import { repaint, h, fmt, table, sortRows, statusChip, stateBlock, pageHead, toast, openModal, field, submitRow } from "../ui.js";
 import { deniedBlock } from "./misc.js";
 
 const state = { stage: "", sort: { key: "reported", dir: -1 } };
 const STAGES = ["Reported", "Approved", "In workshop", "Resolved", "Rejected"];
 
 export function list(container) {
-  container.append(skelTable(8));
-  store.load("maintenance").then(() => { container.replaceChildren(); paint(container); });
+  paint(container);
 }
 
 function paint(container) {
   const all = store.visibleMaintenance();
-  const rerender = () => { container.replaceChildren(); paint(container); };
+  const rerender = () => repaint(container, paint);
 
   const counts = Object.fromEntries(STAGES.map((s) => [s, all.filter((m) => m.status === s).length]));
   const openSum = all.filter((m) => ["Reported", "Approved", "In workshop"].includes(m.status)).reduce((s, m) => s + m.estCost, 0);
@@ -75,8 +71,7 @@ function paint(container) {
 
 /* ---------------- detail ---------------- */
 export function detail(container, id) {
-  container.append(skelDetail());
-  store.load("mr:" + id, 300).then(() => { container.replaceChildren(); paintDetail(container, id); });
+  paintDetail(container, id);
 }
 
 function paintDetail(container, id) {
@@ -184,7 +179,8 @@ function rejectModal(m, a) {
 }
 
 function workshopModal(m) {
-  const mechanics = store.db.employees.filter((e) => e.role === "Plant Mechanic");
+  const mechs = store.db.employees.filter((e) => e.role === "Plant Mechanic");
+  const mechanics = mechs.length ? mechs : store.db.employees; // never leave the required select empty
   const mech = field({
     name: "mech", label: "Assign a mechanic", type: "select", required: true,
     options: mechanics.map((e) => ({ value: e.id, label: e.name })),

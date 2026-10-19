@@ -1,7 +1,7 @@
 /* PLINTH — allocation flow: the product's core transaction.
    Three steps: choose the job, pick from the yard, confirm. Fully keyboard-driven. */
 import * as store from "../store.js";
-import { h, fmt, icon, condBadge, statusChip, pageHead, toast } from "../ui.js";
+import { repaint, h, fmt, icon, condBadge, statusChip, pageHead, toast } from "../ui.js";
 
 const flow = { step: 1, jobId: null, assetIds: new Set(), catFilter: "", seededFrom: "" };
 
@@ -26,7 +26,8 @@ export function render(container, params) {
 
 function paint(container) {
   container.replaceChildren();
-  const rerender = () => paint(container);
+  const rerender = () => repaint(container, paint);
+  if (flow.step > 1 && !store.job(flow.jobId)) Object.assign(flow, { step: 1, jobId: null });
 
   container.append(pageHead({
     title: "Allocate assets",
@@ -114,7 +115,7 @@ function stepAssets(container, rerender) {
           h("input", {
             type: "checkbox", checked,
             "aria-label": `Pick ${a.id} ${a.model}`,
-            onchange: () => { checked ? flow.assetIds.delete(a.id) : flow.assetIds.add(a.id); rerender(); },
+            onchange: () => { if (checked) flow.assetIds.delete(a.id); else flow.assetIds.add(a.id); rerender(); },
           }),
           h("span.pick-main", {},
             h("b", {}, `${a.id} · ${a.model}`),

@@ -36,6 +36,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // The app is a static page outside React (see public/app.html).
+  async rewrites() {
+    return { beforeFiles: [{ source: "/app", destination: "/app.html" }], afterFiles: [], fallback: [] };
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

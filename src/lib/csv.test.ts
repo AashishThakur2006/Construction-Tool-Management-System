@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-// @ts-ignore — plain browser ES module, no type declarations
 import { csvCell, toCsv } from "../../public/js/csv.js";
 
 describe("csvCell", () => {

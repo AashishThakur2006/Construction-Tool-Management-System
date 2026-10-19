@@ -1,22 +1,19 @@
 /* PLINTH — employees list and detail. */
 import { exportButton } from "../csv.js";
 import * as store from "../store.js";
-import {
-  h, fmt, table, sortRows, statusChip, stateBlock, skelTable, skelDetail,
-  pageHead, toast, openModal, field, submitRow,
-} from "../ui.js";
+import { repaint, frameBatch, h, fmt, table, sortRows, statusChip, stateBlock, pageHead, toast, openModal, field, submitRow } from "../ui.js";
 import { deniedBlock } from "./misc.js";
 
 const state = { q: "", role: "", sort: { key: "name", dir: 1 } };
 
 export function list(container) {
-  container.append(skelTable(8));
-  store.load("employees").then(() => { container.replaceChildren(); paint(container); });
+  paint(container);
 }
 
 function paint(container) {
   const all = store.visibleEmployees();
-  const rerender = () => { container.replaceChildren(); paint(container); };
+  const rerender = () => repaint(container, paint);
+  const rerenderSoon = frameBatch(rerender);
 
   if (all.length === 0) {
     container.append(pageHead({ title: "Employees" }), h("div.card", {}, stateBlock(store.COPY.empty.employees)));
@@ -41,7 +38,7 @@ function paint(container) {
     if (state.role && e.role !== state.role) return false;
     if (state.q) {
       const s = state.q.toLowerCase();
-      if (![e.name, e.id, e.role, e.email].some((v) => v.toLowerCase().includes(s))) return false;
+      if (![e.name, e.id, e.role, e.email].some((v) => String(v ?? "").toLowerCase().includes(s))) return false;
     }
     return true;
   });
@@ -56,7 +53,7 @@ function paint(container) {
     h("div.filters", {},
       h("input", {
         type: "search", placeholder: "Filter by name, ID, role…", "aria-label": "Filter employees",
-        value: state.q, oninput: (e) => { state.q = e.target.value; rerender(); },
+        value: state.q, oninput: (e) => { state.q = e.target.value; rerenderSoon(); },
       }),
       h("select", { "aria-label": "Filter by role", onchange: (e) => { state.role = e.target.value; rerender(); } },
         h("option", { value: "" }, "Any role"),
@@ -109,8 +106,7 @@ function addModal() {
 
 /* ---------------- detail ---------------- */
 export function detail(container, id) {
-  container.append(skelDetail());
-  store.load("employee:" + id, 300).then(() => { container.replaceChildren(); paintDetail(container, id); });
+  paintDetail(container, id);
 }
 
 function paintDetail(container, id) {

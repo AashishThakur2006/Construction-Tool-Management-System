@@ -71,10 +71,57 @@ const paths = {
   history: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/>',
   offline: '<path d="M4 4l16 16"/><path d="M8.5 8.8A7.5 7.5 0 0 0 4.7 12"/><path d="M12 5.5c3 0 5.7 1.2 7.3 3.2"/><path d="M12 19.5v.01"/><path d="M8.2 15.7a5 5 0 0 1 5.4-1"/>',
 };
+const iconCache = new Map();
 export function icon(name, cls) {
-  const tpl = document.createElement("template");
-  tpl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${cls ? ` class="${cls}"` : ""}>${paths[name] || ""}</svg>`;
-  return tpl.content.firstChild;
+  const key = name + "|" + (cls || "");
+  let proto = iconCache.get(key);
+  if (!proto) {
+    const tpl = document.createElement("template");
+    tpl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${cls ? ` class="${cls}"` : ""}>${paths[name] || ""}</svg>`;
+    proto = tpl.content.firstChild;
+    iconCache.set(key, proto);
+  }
+  return proto.cloneNode(true);
+}
+
+/**
+ * Re-run a view's paint in place without the lurch of a full rebuild: the
+ * new tree is built off-screen and swapped in one go, and the scroll position
+ * plus the focused control (and its caret) survive, so typing into a filter
+ * box or flipping a select never loses your place.
+ */
+export function repaint(container, paintFn) {
+  const scroller = container.closest(".view") || container;
+  const top = scroller.scrollTop;
+  const a = document.activeElement;
+  const inside = a && a !== document.body && container.contains(a);
+  const label = inside ? a.getAttribute("aria-label") : null;
+  const caret = inside && typeof a.selectionStart === "number" ? [a.selectionStart, a.selectionEnd] : null;
+
+  const frag = document.createElement("div");
+  paintFn(frag);
+  container.replaceChildren(...frag.childNodes);
+  scroller.scrollTop = top;
+
+  if (label) {
+    const next = [...container.querySelectorAll("[aria-label]")].find((el) => el.getAttribute("aria-label") === label);
+    if (next) {
+      next.focus({ preventScroll: true });
+      if (caret && typeof next.setSelectionRange === "function") {
+        try { next.setSelectionRange(caret[0], caret[1]); } catch { /* input type without selection */ }
+      }
+    }
+  }
+}
+
+/** Coalesce bursts of calls (keystrokes) into one run per animation frame. */
+export function frameBatch(fn) {
+  let queued = false;
+  return () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; fn(); });
+  };
 }
 
 /* ---------------- chips: colour + glyph shape + label ---------------- */
@@ -85,11 +132,18 @@ const glyphs = {
   info: '<circle cx="4" cy="4" r="2.8" fill="none" stroke="currentColor" stroke-width="1.7"/>',
   mut: '<circle cx="4" cy="4" r="2.2" fill="none" stroke="currentColor" stroke-width="1.3"/>',
 };
+const chipCache = new Map();
 export function chip(kind, label) {
-  const tpl = document.createElement("template");
+  const k = glyphs[kind] ? kind : "mut";
+  let proto = chipCache.get(k);
+  if (!proto) {
+    const tpl = document.createElement("template");
+    tpl.innerHTML = `<span class="chip chip-${k}"><svg viewBox="0 0 8 8" aria-hidden="true">${glyphs[k]}</svg></span>`;
+    proto = tpl.content.firstChild;
+    chipCache.set(k, proto);
+  }
+  const el = proto.cloneNode(true);
   // label is data (statuses come from the database): insert as text, never markup
-  tpl.innerHTML = `<span class="chip chip-${glyphs[kind] ? kind : "mut"}"><svg viewBox="0 0 8 8" aria-hidden="true">${glyphs[kind] || glyphs.mut}</svg></span>`;
-  const el = tpl.content.firstChild;
   el.append(document.createTextNode(label == null ? "" : String(label)));
   return el;
 }
@@ -252,6 +306,7 @@ export function sortRows(rows, sort, cols) {
   const val = col?.value || ((r) => r[sort.key]);
   return [...rows].sort((a, b) => {
     const va = val(a), vb = val(b);
+    if (va == null && vb == null) return 0;
     if (va == null) return 1;
     if (vb == null) return -1;
     if (typeof va === "number") return (va - vb) * sort.dir;
@@ -368,7 +423,7 @@ export function submitRow(fields, label, onSubmit, { danger } = {}) {
     btn.disabled = missing.length > 0;
     note.textContent = missing.length ? `To continue, complete: ${missing.join(", ")}` : "";
   }
-  fields.forEach((f) => { const prev = f.input.oninput; f.input.addEventListener("input", refresh); f.input.addEventListener("change", refresh); f.input.addEventListener("blur", refresh); });
+  fields.forEach((f) => { f.input.addEventListener("input", refresh); f.input.addEventListener("change", refresh); f.input.addEventListener("blur", refresh); });
   refresh();
   const row = h("div.submit-row", {}, note, btn);
   row.refresh = refresh;

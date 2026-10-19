@@ -1,6 +1,6 @@
 /* PLINTH — reports & exports. Owner only; computed from the full register. */
 import * as store from "../store.js";
-import { h, fmt, pageHead, toast } from "../ui.js";
+import { h, fmt, pageHead } from "../ui.js";
 import { deniedBlock } from "./misc.js";
 import { downloadCsv } from "../csv.js";
 
@@ -20,7 +20,7 @@ function kpi(label, value, sub) {
 
 export function render(container) {
   if (!store.isOwner()) { container.append(deniedBlock()); return; }
-  store.load().then(() => { container.replaceChildren(); paint(container); });
+  paint(container);
 }
 
 function paint(container) {

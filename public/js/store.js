@@ -46,16 +46,22 @@ function setOnline(v) {
 
 async function api(path, options) {
   let res;
-  try {
-    res = await fetch(path, {
-      headers: { "Content-Type": "application/json" },
-      ...options,
-    });
-  } catch {
-    setOnline(false);
-    const err = new Error("Network request failed");
-    err.offline = true;
-    throw err;
+  // A request that never got an answer is safe to resend; try a few times
+  // before declaring the network down (flaky links reset connections).
+  for (let attempt = 0; ; attempt++) {
+    try {
+      res = await fetch(path, {
+        headers: { "Content-Type": "application/json" },
+        ...options,
+      });
+      break;
+    } catch {
+      if (attempt < 2) { await new Promise((r) => setTimeout(r, 300 * (attempt + 1))); continue; }
+      setOnline(false);
+      const err = new Error("Can't reach the server. Check your connection and try again.");
+      err.offline = true;
+      throw err;
+    }
   }
   setOnline(true);
   if (!res.ok) {
@@ -104,7 +110,7 @@ export async function register(payload) {
 export async function logout() {
   try { await api("/api/auth/logout", { method: "POST" }); } catch { /* ignore */ }
   me = null;
-  db.jobs = db.employees = db.assets = db.maintenance = db.payments = [];
+  db.jobs = []; db.employees = []; db.assets = []; db.maintenance = []; db.payments = [];
   db.history = {};
 }
 
@@ -237,7 +243,11 @@ function hist(assetId, kind, note) {
 /** Fire a batch at the server. On failure of a forward change, roll back + toast. */
 function push(ops, restore) {
   api("/api/mutate", { method: "POST", body: JSON.stringify({ ops }) }).catch((e) => {
-    if (restore) { restore(); emit(); toast(`Couldn't save — change reverted. ${e.message}`); }
+    if (restore) {
+      restore(); emit(); toast(`Couldn't save — change reverted. ${e.message}`);
+      // the snapshot also discards any other edit made since; re-sync with the server
+      boot().then(() => emit()).catch(() => {});
+    }
     else toast(`Couldn't sync that undo — reload to resync. ${e.message}`);
   });
 }

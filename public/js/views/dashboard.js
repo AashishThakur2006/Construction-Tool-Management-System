@@ -1,17 +1,13 @@
 /* PLINTH — dashboard. Genuinely different by role. */
 import * as store from "../store.js";
-import { h, fmt, icon, statusChip, skelKpis, skelTable, pageHead } from "../ui.js";
+import { h, fmt, statusChip, pageHead } from "../ui.js";
 import { createField } from "../signature.js";
 
 let heroHandle = null;
 
 export function render(container) {
-  container.append(skelKpis(4), skelTable(5));
-  store.load("dashboard").then(() => {
-    container.replaceChildren();
-    heroHandle?.dispose();
-    store.isOwner() ? owner(container) : engineer(container);
-  });
+  heroHandle?.dispose();
+  if (store.isOwner()) owner(container); else engineer(container);
 }
 
 function hero(container, scopeMine, overlayBig, overlayRow) {

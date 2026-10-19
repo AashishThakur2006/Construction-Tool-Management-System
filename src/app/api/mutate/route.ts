@@ -24,13 +24,15 @@ type Tx = TransactionSql;
  * violation rolls the whole batch back. denyReason() only knows tables and
  * columns; this knows *which rows* an engineer's jobs cover.
  */
-async function assertEngineerScope(tx: Tx, op: Op, session: Session) {
+async function assertEngineerScope(tx: Tx, op: Op, session: Session, minePromise: { v?: Promise<string[]> }) {
   const deny = (m: string) => {
     throw new AuthError(m, 403);
   };
   const eid = session.employeeId;
   if (!eid) deny("Your account is not linked to an employee record");
-  const mine = (await tx`SELECT id FROM jobs WHERE engineer_id = ${eid}`).map((r) => r.id as string);
+  // one lookup per transaction, not one per op
+  minePromise.v ??= tx`SELECT id FROM jobs WHERE engineer_id = ${eid}`.then((rows) => rows.map((r) => r.id as string));
+  const mine = await minePromise.v;
 
   if (op.t === "asset" && op.set && op.id != null) {
     const [a] = await tx`SELECT job_id FROM assets WHERE id = ${op.id}`;
@@ -75,8 +77,9 @@ export async function POST(request: NextRequest) {
     }
 
     await sql.begin(async (tx) => {
+      const scope: { v?: Promise<string[]> } = {};
       for (const op of ops) {
-        if (session.role !== "OWNER") await assertEngineerScope(tx, op, session);
+        if (session.role !== "OWNER") await assertEngineerScope(tx, op, session, scope);
         const t = tx(tableFor(op.t)!.table);
 
         if (op.set && op.id != null) {

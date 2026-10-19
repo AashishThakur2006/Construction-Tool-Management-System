@@ -1,22 +1,18 @@
 /* PLINTH — payment ledger and detail. Financials are role-scoped. */
 import { exportButton } from "../csv.js";
 import * as store from "../store.js";
-import {
-  h, fmt, table, sortRows, statusChip, stateBlock, skelTable, skelDetail,
-  pageHead, toast, confirmDialog, openModal, field, submitRow,
-} from "../ui.js";
+import { repaint, h, fmt, table, sortRows, statusChip, stateBlock, pageHead, toast, confirmDialog, openModal, field, submitRow } from "../ui.js";
 import { deniedBlock } from "./misc.js";
 
 const state = { status: "", jobId: "", sort: { key: "issued", dir: -1 } };
 
 export function list(container) {
-  container.append(skelTable(8));
-  store.load("payments").then(() => { container.replaceChildren(); paint(container); });
+  paint(container);
 }
 
 function paint(container) {
   const all = store.visiblePayments();
-  const rerender = () => { container.replaceChildren(); paint(container); };
+  const rerender = () => repaint(container, paint);
 
   const open = all.filter((p) => ["Pending", "Overdue", "Disputed"].includes(p.status));
   const overdue = all.filter((p) => p.status === "Overdue");
@@ -113,8 +109,7 @@ function recordModal() {
 
 /* ---------------- detail ---------------- */
 export function detail(container, id) {
-  container.append(skelDetail());
-  store.load("pay:" + id, 300).then(() => { container.replaceChildren(); paintDetail(container, id); });
+  paintDetail(container, id);
 }
 
 function paintDetail(container, id) {

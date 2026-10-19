@@ -1,10 +1,7 @@
 /* PLINTH — asset register (densest table) and asset detail. */
 import { exportButton } from "../csv.js";
 import * as store from "../store.js";
-import {
-  h, fmt, icon, table, sortRows, statusChip, condBadge, stateBlock,
-  skelTable, skelDetail, pageHead, confirmDialog, toast, openModal, field, submitRow,
-} from "../ui.js";
+import { repaint, frameBatch, h, fmt, table, sortRows, statusChip, condBadge, stateBlock, pageHead, confirmDialog, toast, openModal, field, submitRow } from "../ui.js";
 import { deniedBlock } from "./misc.js";
 
 const state = {
@@ -86,13 +83,13 @@ export function importModal() {
 }
 
 export function list(container) {
-  container.append(skelTable(10));
-  store.load("assets").then(() => { container.replaceChildren(); paint(container); });
+  paint(container);
 }
 
 function paint(container) {
   const all = store.visibleAssets().filter((a) => a.status !== "Retired" || store.isOwner());
-  const rerender = () => { container.replaceChildren(); paint(container); };
+  const rerender = () => repaint(container, paint);
+  const rerenderSoon = frameBatch(rerender);
 
   const ownerActions = store.isOwner() ? h("div.head-actions", {},
     h("button.btn.btn-secondary", { type: "button", onclick: () => importModal() }, "Import CSV"),
@@ -171,7 +168,7 @@ function paint(container) {
     h("div.filters", {},
       h("input", {
         type: "search", placeholder: "Filter by ID, model, serial…", "aria-label": "Filter assets",
-        value: state.q, oninput: (e) => { state.q = e.target.value; rerender(); },
+        value: state.q, oninput: (e) => { state.q = e.target.value; rerenderSoon(); },
       }),
       h("select", { "aria-label": "Filter by category", onchange: (e) => { state.category = e.target.value; rerender(); } },
         h("option", { value: "" }, "Any category"),
@@ -205,8 +202,7 @@ function paint(container) {
 
 /* ---------------- detail ---------------- */
 export function detail(container, id) {
-  container.append(skelDetail());
-  store.load("asset:" + id, 350).then(() => { container.replaceChildren(); paintDetail(container, id); });
+  paintDetail(container, id);
 }
 
 function paintDetail(container, id) {

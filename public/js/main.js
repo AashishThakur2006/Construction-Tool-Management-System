@@ -163,10 +163,13 @@ const views = {
 };
 
 let lastRoute = "";
-function render() {
+function render(keepScroll = false) {
   if (!store.sessionRole()) {
     document.title = "Plinth — sign in";
-    login.render(root, () => { buildShell(); navigate("/dashboard"); render(); });
+    login.render(root, () => {
+      buildShell();
+      if (location.hash === "#/dashboard") render(); else navigate("/dashboard"); // hashchange renders
+    });
     sidebarEl = navEl = viewEl = null;
     return;
   }
@@ -181,19 +184,24 @@ function render() {
   if (key === "search" && searchInput) searchInput.value = params.get("q") || "";
 
   const routeId = location.hash;
-  viewEl.replaceChildren();
-  viewEl.scrollTop = 0;
-  def.render(viewEl, segs, params);
+  const top = viewEl.scrollTop;
+  // Each render gets its own page node: an async view (team, details) that
+  // resolves after the user has moved on writes into a detached node, not
+  // into whatever page is showing now.
+  const page = h("div.page");
+  viewEl.replaceChildren(page);
+  def.render(page, segs, params);
+  viewEl.scrollTop = keepScroll === true ? top : 0;
   if (routeId !== lastRoute) { viewEl.focus({ preventScroll: true }); lastRoute = routeId; }
 }
 
 /* ---------------- global wiring ---------------- */
 function syncOffline() { if (offlineBar) offlineBar.hidden = store.online; }
 
-window.addEventListener("hashchange", render);
+window.addEventListener("hashchange", () => render());
 store.onChange(() => {
   syncOffline();
-  if (store.sessionRole() && viewEl) render();
+  if (store.sessionRole() && viewEl) render(true);
 });
 
 /* ---------------- keyboard shortcuts ---------------- */

@@ -22,10 +22,16 @@ export class AuthError extends Error {
 /** Current user from the Supabase session cookie, joined to public.profiles. */
 export async function getSession(): Promise<Session | null> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  // getClaims verifies the JWT locally (cached JWKS) instead of a network
+  // round-trip to Supabase Auth on every API call.
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims?.sub) return null;
+  const user = {
+    id: claims.sub,
+    email: claims.email as string | undefined,
+    user_metadata: claims.user_metadata as Record<string, unknown> | undefined,
+  };
 
   const rows = await sql<
     { name: string; role: Role; employee_id: string | null }[]

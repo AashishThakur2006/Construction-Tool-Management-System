@@ -86,6 +86,9 @@ describe("isLocalHost", () => {
   it("recognises loopback hosts only", () => {
     expect(isLocalHost("localhost:3000")).toBe(true);
     expect(isLocalHost("127.0.0.1:3111")).toBe(true);
+    expect(isLocalHost("[::1]:3000")).toBe(true);
+    expect(isLocalHost("10.210.40.148:3000")).toBe(true);
+    expect(isLocalHost("8.8.8.8")).toBe(false);
     expect(isLocalHost("plinth.vercel.app")).toBe(false);
     expect(isLocalHost(null)).toBe(false);
   });

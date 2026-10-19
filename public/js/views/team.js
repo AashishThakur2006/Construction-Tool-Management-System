@@ -40,8 +40,7 @@ async function load(container) {
 }
 
 function paint(container, members) {
-  const me = store.persona();
-  const rerender = async () => { container.replaceChildren(store.persona() ? h("div") : h("div")); await load(container); };
+  const rerender = async () => { container.replaceChildren(h("div")); await load(container); };
 
   const cols = [
     { key: "email", label: "Account", mono: true, sub: (m) => m.name || "—" },

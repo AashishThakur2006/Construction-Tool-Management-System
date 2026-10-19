@@ -1,7 +1,7 @@
 /* PLINTH — jobs list and job detail. */
 import { exportButton } from "../csv.js";
 import * as store from "../store.js";
-import { h, fmt, table, sortRows, statusChip, stateBlock, skelTable, pageHead, confirmDialog, toast, openModal, field, submitRow } from "../ui.js";
+import { repaint, frameBatch, h, fmt, table, sortRows, statusChip, stateBlock, pageHead, confirmDialog, toast, openModal, field, submitRow } from "../ui.js";
 import { deniedBlock } from "./misc.js";
 
 const state = { q: "", status: "", engineer: "", sort: { key: "id", dir: -1 } };
@@ -40,8 +40,7 @@ export function jobModal(existing) {
 }
 
 export function list(container) {
-  container.append(skelTable(8));
-  store.load("jobs").then(() => { container.replaceChildren(); paint(container); });
+  paint(container);
 }
 
 function paint(container) {
@@ -71,14 +70,15 @@ function paint(container) {
     if (state.engineer && j.engineerId !== state.engineer) return false;
     if (state.q) {
       const s = state.q.toLowerCase();
-      if (![j.id, j.name, j.client, j.location].some((v) => v.toLowerCase().includes(s))) return false;
+      if (![j.id, j.name, j.client, j.location].some((v) => String(v ?? "").toLowerCase().includes(s))) return false;
     }
     return true;
   });
   rows = sortRows(rows, state.sort, cols);
 
   const engineers = store.db.employees.filter((e) => e.role === "Site Engineer");
-  const rerender = () => { container.replaceChildren(); paint(container); };
+  const rerender = () => repaint(container, paint);
+  const rerenderSoon = frameBatch(rerender);
 
   container.append(
     pageHead({
@@ -89,7 +89,7 @@ function paint(container) {
     h("div.filters", {},
       h("input", {
         type: "search", placeholder: "Filter by code, name, client…", "aria-label": "Filter jobs",
-        value: state.q, oninput: (e) => { state.q = e.target.value; rerender(); },
+        value: state.q, oninput: (e) => { state.q = e.target.value; rerenderSoon(); },
       }),
       h("select", { "aria-label": "Filter by status", onchange: (e) => { state.status = e.target.value; rerender(); } },
         h("option", { value: "" }, "Any status"),
@@ -127,11 +127,11 @@ export function detail(container, id) {
   });
 
   const timeline = [
-    { on: j.started, note: `Job ${j.status === "Mobilising" ? "mobilises" : "started"} — ${j.client}` },
+    j.started && { on: j.started, note: `Job ${j.status === "Mobilising" ? "mobilises" : "started"} — ${j.client}` },
     ...assets.map((a) => ({ on: a.allocatedOn, note: `${a.id} ${a.model} allocated` })),
     j.holdNote && { on: "2026-05-22", note: j.holdNote },
-    { on: j.ends, note: j.ends < store.TODAY ? "Job completed" : `Planned completion (${fmt.rel(j.ends, store.TODAY)})` },
-  ].filter(Boolean).sort((a, b) => a.on.localeCompare(b.on));
+    j.ends && { on: j.ends, note: j.ends < store.TODAY ? "Job completed" : `Planned completion (${fmt.rel(j.ends, store.TODAY)})` },
+  ].filter((t) => t && t.on).sort((a, b) => a.on.localeCompare(b.on));
 
   container.append(
     pageHead({
